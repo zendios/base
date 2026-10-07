@@ -1,0 +1,9 @@
+{
+    "name": "AdZative.Editor",
+    "rootNamespace": "Base.Ads",
+    "references": ["AdZative"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "autoReferenced": true
+}

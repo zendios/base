@@ -1,0 +1,64 @@
+{
+    "name": "Zen.Core",
+    "rootNamespace": "",
+    "references": [
+        "Base.Vibration",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro",
+        "Unity.InputSystem",
+        "AdZative",
+        "AppsFlyer",
+        "Google.Play.Common",
+        "Google.Play.Core",
+        "Google.Play.AppUpdate",
+        "Google.Play.Review",
+        "Unity.Purchasing",
+        "Unity.Purchasing.Stores",
+        "Unity.Purchasing.Codeless"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.google.ads.mobile",
+            "expression": "",
+            "define": "USE_ADMOB"
+        },
+        {
+            "name": "com.google.firebase.app",
+            "expression": "",
+            "define": "USE_FIREBASE"
+        },
+        {
+            "name": "appsflyer-unity-plugin",
+            "expression": "",
+            "define": "USE_APPSFLYER"
+        },
+        {
+            "name": "com.zen.plugins.adzative",
+            "expression": "",
+            "define": "USE_ADZATIVE"
+        },
+        {
+            "name": "com.google.play.review",
+            "expression": "",
+            "define": "USE_IN_APP_REVIEW"
+        },
+        {
+            "name": "com.google.play.appupdate",
+            "expression": "",
+            "define": "USE_IN_APP_UPDATE"
+        },
+        {
+            "name": "com.unity.purchasing",
+            "expression": "",
+            "define": "USE_IN_APP_PURCHASE"
+        }
+    ],
+    "noEngineReferences": false
+}

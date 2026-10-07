@@ -1,0 +1,81 @@
+apply plugin: 'com.android.library'
+**APPLY_PLUGINS**
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.multidex:multidex:2.0.1'
+// Android Resolver Dependencies Start
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4' // Packages/com.google.ads.mobile/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:12
+    implementation 'androidx.datastore:datastore-core:1.1.1' // Packages/com.zen.core/Editor/Ads/GoogleMobileAdsDependencies.xml:12
+    implementation 'androidx.datastore:datastore-preferences:1.1.1' // Packages/com.zen.core/Editor/Ads/GoogleMobileAdsDependencies.xml:7
+    implementation 'androidx.fragment:fragment:1.7.1' // Packages/com.google.ads.mobile/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:22
+    implementation 'androidx.lifecycle:lifecycle-process:2.6.2' // Packages/com.google.ads.mobile/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:17
+    implementation 'com.android.installreferrer:installreferrer:2.1' // Packages/appsflyer-unity-plugin/Editor/AppsFlyerDependencies.xml:7
+    implementation 'com.appsflyer:af-android-sdk:6.18.0' // Packages/appsflyer-unity-plugin/Editor/AppsFlyerDependencies.xml:5
+    implementation 'com.appsflyer:purchase-connector:2.2.0' // Packages/appsflyer-unity-plugin/Editor/AppsFlyerDependencies.xml:8
+    implementation 'com.appsflyer:unity-wrapper:6.18.01' // Packages/appsflyer-unity-plugin/Editor/AppsFlyerDependencies.xml:6
+    implementation 'com.google.ads.mediation:facebook:6.22.0.1' // Packages/com.google.ads.mobile.mediation.metaaudiencenetwork/source/plugin/Assets/GoogleMobileAds/Mediation/MetaAudienceNetwork/Editor/Dependencies.xml:24
+    implementation 'com.google.ads.mediation:vungle:7.7.4.0' // Packages/com.google.ads.mobile.mediation.liftoffmonetize/GoogleMobileAds/Mediation/LiftoffMonetize/Editor/Dependencies.xml:24
+    implementation 'com.google.android.gms:play-services-base:18.10.1' // Packages/com.google.firebase.app/Firebase/Editor/AppDependencies.xml:20
+    implementation 'com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.4.0' // Packages/com.google.ads.mobile/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:7
+    implementation 'com.google.android.play:app-update:2.1.0' // Packages/com.google.play.appupdate/Editor/Dependencies.xml:3
+    implementation 'com.google.android.play:core-common:2.0.4' // Packages/com.google.play.core/Editor/Dependencies.xml:3
+    implementation 'com.google.android.play:review:2.0.2' // Packages/com.google.play.review/Editor/Dependencies.xml:3
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0' // Packages/com.google.ads.mobile/GoogleMobileAds/Editor/GoogleUmpDependencies.xml:7
+    implementation 'com.google.firebase:firebase-analytics:23.2.0' // Packages/com.google.firebase.analytics/Firebase/Editor/AnalyticsDependencies.xml:16
+    implementation 'com.google.firebase:firebase-analytics-unity:13.17.0' // Packages/com.google.firebase.analytics/Firebase/Editor/AnalyticsDependencies.xml:21
+    implementation 'com.google.firebase:firebase-app-unity:13.17.0' // Packages/com.google.firebase.app/Firebase/Editor/AppDependencies.xml:25
+    implementation 'com.google.firebase:firebase-common:22.2.1' // Packages/com.google.firebase.app/Firebase/Editor/AppDependencies.xml:16
+    implementation 'com.google.firebase:firebase-config:23.1.0' // Packages/com.google.firebase.remote-config/Firebase/Editor/RemoteConfigDependencies.xml:16
+    implementation 'com.google.firebase:firebase-config-unity:13.17.0' // Packages/com.google.firebase.remote-config/Firebase/Editor/RemoteConfigDependencies.xml:23
+    implementation 'com.google.firebase:firebase-crashlytics-ndk:20.1.1' // Packages/com.google.firebase.crashlytics/Firebase/Editor/CrashlyticsDependencies.xml:16
+    implementation 'com.google.firebase:firebase-crashlytics-unity:13.17.0' // Packages/com.google.firebase.crashlytics/Firebase/Editor/CrashlyticsDependencies.xml:23
+// Android Resolver Dependencies End
+**DEPS**}
+
+// Android Resolver Exclusions Start
+android {
+  packagingOptions {
+      exclude ('/lib/armeabi/*' + '*')
+      exclude ('/lib/armeabi-v7a/*' + '*')
+      exclude ('/lib/mips/*' + '*')
+      exclude ('/lib/mips64/*' + '*')
+      exclude ('/lib/x86/*' + '*')
+      exclude ('/lib/x86_64/*' + '*')
+  }
+}
+// Android Resolver Exclusions End
+android {
+    namespace "com.unity3d.player"
+    ndkPath "**NDKPATH**"
+    compileSdkVersion **APIVERSION**
+    buildToolsVersion '**BUILDTOOLS**'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    defaultConfig {
+        minSdkVersion **MINSDKVERSION**
+        targetSdkVersion **TARGETSDKVERSION**
+        ndk {
+            abiFilters **ABIFILTERS**
+        }
+        versionCode **VERSIONCODE**
+        versionName '**VERSIONNAME**'
+        consumerProguardFiles 'proguard-unity.txt'**USER_PROGUARD**
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    aaptOptions {
+        noCompress = **BUILTIN_NOCOMPRESS** + unityStreamingAssets.tokenize(', ')
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }**PACKAGING_OPTIONS**
+}
+**IL_CPP_BUILD_SETUP**
+**SOURCE_BUILD_SETUP**
+**EXTERNAL_SOURCES**

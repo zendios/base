@@ -1,0 +1,29 @@
+{
+    "name": "com.zen.core",
+    "version": "1.2.5",
+    "displayName": "Zen Core",
+    "license": "MIT",
+    "unity": "2022.3",
+    "description": "Base for Unity games in one package: Base.dll, DataManager, UI, currency, extensions, vibration, ads (AdMob + AdZative native waterfall, UMP, ATT, AppsFlyer, Taichi, review / update, splash, debug tools), IAP (Unity IAP), Firebase (Analytics, Remote Config, Crashlytics), screens (ScreenUtils) and Base > Hub. Optional SDKs switch their part off when missing.",
+    "author": {
+        "name": "Zendios",
+        "email": "support@zendios.net",
+        "url": "https://zendios.net"
+    },
+    "dependencies": {
+        "com.unity.textmeshpro": "3.0.9",
+        "com.unity.ugui": "1.0.0",
+        "com.unity.inputsystem": "1.7.0",
+        "com.zen.plugins.adzative": "1.2.5",
+        "com.google.ads.mobile": "11.5.0"
+    },
+    "documentationUrl": "https://github.com/zendios/base/blob/main/com.zen.core/README.md",
+    "changelogUrl": "https://github.com/zendios/base/blob/main/com.zen.core/CHANGELOG.md",
+    "samples": [
+        {
+            "displayName": "Scenes",
+            "description": "Splash (landscape / portrait) and the ads sample scene.",
+            "path": "Samples~/Scenes"
+        }
+    ]
+}

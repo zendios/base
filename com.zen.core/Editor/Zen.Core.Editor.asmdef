@@ -1,0 +1,52 @@
+{
+    "name": "Zen.Core.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Zen.Core",
+        "AdZative",
+        "UnityEditor.UI",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Unity.Purchasing",
+        "Unity.Purchasing.Stores",
+        "Unity.Purchasing.Codeless",
+        "UnityEditor.Purchasing"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.google.ads.mobile",
+            "expression": "",
+            "define": "USE_ADMOB"
+        },
+        {
+            "name": "com.google.firebase.app",
+            "expression": "",
+            "define": "USE_FIREBASE"
+        },
+        {
+            "name": "appsflyer-unity-plugin",
+            "expression": "",
+            "define": "USE_APPSFLYER"
+        },
+        {
+            "name": "com.zen.plugins.adzative",
+            "expression": "",
+            "define": "USE_ADZATIVE"
+        },
+        {
+            "name": "com.unity.purchasing",
+            "expression": "",
+            "define": "USE_IN_APP_PURCHASE"
+        }
+    ],
+    "noEngineReferences": false
+}

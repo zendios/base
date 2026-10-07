@@ -1,0 +1,42 @@
+// =================================================================================
+// == OPTIMUS - ROOT CLASSPATH OVERRIDE                                           ==
+// == Layer 1: Force Gradle to use a stable, updated R8 compiler (8.1.56).        ==
+// == This is injected at the absolute root level to prevent any sub-modules      ==
+// == (like External Dependency Manager) from bypassing the compiler version.     ==
+// =================================================================================
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath("com.android.tools:r8:8.1.56")
+    }
+}
+
+plugins {
+    // If you are changing the Android Gradle Plugin version, make sure it is compatible with the Gradle version preinstalled with Unity
+    // See which Gradle version is preinstalled with Unity here https://docs.unity3d.com/Manual/android-gradle-overview.html
+    // See official Gradle and Android Gradle Plugin compatibility table here https://developer.android.com/studio/releases/gradle-plugin#updating-gradle
+    // To specify a custom Gradle version in Unity, go do "Preferences > External Tools", uncheck "Gradle Installed with Unity (recommended)" and specify a path to a custom Gradle version
+    id 'com.android.application' version '7.4.2' apply false
+    id 'com.android.library' version '7.4.2' apply false
+    **BUILD_SCRIPT_DEPS**
+}
+
+// =================================================================================
+// == FORCE COMPATIBLE DEPENDENCIES FOR AGP 7.4.2                                ==
+// == Forces transitive dependencies like androidx.browser back to version 1.8.0 ==
+// == to prevent AGP 8.9.1+ requirements from breaking the build.                 ==
+// =================================================================================
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.browser:browser:1.8.0'
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

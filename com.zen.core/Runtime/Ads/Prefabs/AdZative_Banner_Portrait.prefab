@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4810448730091885088
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1892146286005408960, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_text
+      value: Remove ADs
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_Pivot.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3883580392884982778, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 48
+      objectReference: {fileID: 0}
+    - target: {fileID: 3979722685134120151, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_Name
+      value: AdZative_Banner
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: size
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: sizeDp
+      value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: offsetTop
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: layoutName
+      value: ad_layout_banner_portrait
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: minOffset.y
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: offsetTopDp
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: sizeRequest
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054794999449930869, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: sizeRequestDp
+      value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 5732302568039025121, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5732302568039025121, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5732302568039025121, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 5732302568039025121, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8391263594194484723, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 8391263594194484723, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 74a5f4a3090c2184bab49f859c6ab8eb, type: 3}

@@ -1,0 +1,275 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &9103724483220469956
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9103724483220469959}
+  - component: {fileID: 9103724483220469958}
+  m_Layer: 1
+  m_Name: WeatherFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9103724483220469959
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9103724483220469956}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1000, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7186138660032914115}
+  - {fileID: 7186138661548774625}
+  - {fileID: 9098970952473329619}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &9103724483220469958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9103724483220469956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 943976c4cb8334124b35cd32ef4f2400, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabsFxList:
+  - {fileID: 0}
+  - {fileID: 7186138661548774626}
+  - {fileID: 0}
+  - {fileID: 9101821106648615911}
+  - {fileID: 0}
+  - {fileID: 7186138660032914112}
+--- !u!1001 &9103724483396346797
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 9103724483220469959}
+    m_Modifications:
+    - target: {fileID: 1907917673211978, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+      propertyPath: m_Name
+      value: WeatherFX_Snow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1907917673211978, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755320917761150, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755320917761150, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755320917761150, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4755320917761150, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 83683b46fc4544e438b3b6153e85fe15, type: 3}
+--- !u!4 &9098970952473329619 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4755320917761150, guid: 83683b46fc4544e438b3b6153e85fe15,
+    type: 3}
+  m_PrefabInstance: {fileID: 9103724483396346797}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &9101821106648615911 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1907917673211978, guid: 83683b46fc4544e438b3b6153e85fe15,
+    type: 3}
+  m_PrefabInstance: {fileID: 9103724483396346797}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &9103724483934475211
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 9103724483220469959}
+    m_Modifications:
+    - target: {fileID: 2156281007125301033, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_Name
+      value: WeatherFX_RainRing
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301033, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6427636399782577080, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6427636399782577080, guid: 119bae13625b64810a2e6200bb43a6c6,
+        type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 119bae13625b64810a2e6200bb43a6c6, type: 3}
+--- !u!4 &7186138661548774625 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2156281007125301034, guid: 119bae13625b64810a2e6200bb43a6c6,
+    type: 3}
+  m_PrefabInstance: {fileID: 9103724483934475211}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7186138661548774626 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2156281007125301033, guid: 119bae13625b64810a2e6200bb43a6c6,
+    type: 3}
+  m_PrefabInstance: {fileID: 9103724483934475211}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &9103724484243138025
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 9103724483220469959}
+    m_Modifications:
+    - target: {fileID: 2156281007125301033, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_Name
+      value: WeatherFX_FireFly
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301033, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8e64bc4af87a84913b687f7c21172ec5, type: 3}
+--- !u!1 &7186138660032914112 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2156281007125301033, guid: 8e64bc4af87a84913b687f7c21172ec5,
+    type: 3}
+  m_PrefabInstance: {fileID: 9103724484243138025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7186138660032914115 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2156281007125301034, guid: 8e64bc4af87a84913b687f7c21172ec5,
+    type: 3}
+  m_PrefabInstance: {fileID: 9103724484243138025}
+  m_PrefabAsset: {fileID: 0}

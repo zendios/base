@@ -1,0 +1,190 @@
+# =================================================================================
+# == OPTIMUS - DEFINITIVE PROGUARD CONFIGURATION FOR UNITY                     ==
+# == Version: 4.0 (R8 8.1.56 & AGP 7.4.2 Hardened Edition)                     ==
+# == Purpose: A comprehensive, structured, and maintainable ProGuard file for  ==
+# ==          modern Unity projects. Specifically handles aggressive R8 inlining==
+# ==          and serialization failures in AppLovin MAX.                      ==
+# =================================================================================
+
+# ---------------------------------------------------------------------------------
+# SECTION 0: CORE DIRECTIVES & GLOBAL OPTIMIZATIONS
+# ---------------------------------------------------------------------------------
+
+# Keep essential attributes for debugging stack traces, reflection, and JSON serialization.
+-keepattributes Signature,SourceFile,LineNumberTable,InnerClasses,EnclosingMethod,AnnotationDefault,*Annotation*
+
+# Keep JavascriptInterface for WebView communication, used by many ad SDKs.
+-keepattributes JavascriptInterface
+-keep class android.webkit.JavascriptInterface { *; }
+
+# Keep enumeration classes, critical for enums to function correctly.
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# SECURITY BEST PRACTICE: Obfuscation is enabled by default. The following rules
+# ensure it works correctly. Do NOT use '-dontobfuscate' in production builds.
+
+# OPTIMIZATION: Remove non-essential logging calls from release builds (safely).
+-assumenosideeffects class android.util.Log {
+    public static *** v(...);
+    public static *** d(...);
+}
+
+# ---------------------------------------------------------------------------------
+# SECTION 1: UNITY ENGINE & ANDROID CORE
+# ---------------------------------------------------------------------------------
+-keep class com.unity3d.player.UnityPlayer { *; }
+-keep class com.unity.purchasing.** { *; }
+-keep class com.unity.androidnotifications.** { *; }
+
+# Keep fundamental Android components that Unity interacts with.
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+
+# Keep modern AndroidX and legacy Support libraries for maximum compatibility.
+-keep class androidx.** { *; }
+-keep interface androidx.** { *; }
+-keep class android.support.v4.** { *; }
+-keep class android.support.v7.** { *; }
+
+# ---------------------------------------------------------------------------------
+# SECTION 2: GOOGLE SERVICES (PLAY, FIREBASE)
+# ---------------------------------------------------------------------------------
+-keep public class com.google.android.gms.common.** { *; }
+-keep public class com.google.unity.** { *; }
+
+# --- Firebase (Analytics, Crashlytics, etc.) ---
+-keep public class com.google.firebase.** { *; }
+# CRITICAL for Crashlytics: Preserves line numbers for de-obfuscated crash reports.
+-keep class com.google.firebase.crashlytics.** { *; }
+
+# --- Google Play Core Library (In-App Review, In-App Updates) ---
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+
+# --- Google Play Billing Library (In-App Purchase) ---
+-keep class com.android.billingclient.** { *; }
+
+# --- Google Play Games Services ---
+-keep class com.google.android.gms.games.** { *; }
+-keep class com.google.games.bridge.** { *; }
+
+# ---------------------------------------------------------------------------------
+# SECTION 3: GOOGLE MOBILE ADS (ADMOB) & UMP
+# ---------------------------------------------------------------------------------
+-keep public class com.google.android.gms.ads.** { public *; }
+-keep public class com.google.ads.** { public *; }
+-keep public class com.google.android.ump.** { public *; }
+
+# ---------------------------------------------------------------------------------
+# SECTION 4: AD PLATFORMS & MEDIATION
+# ---------------------------------------------------------------------------------
+
+# --- Zendios ---
+# Rules for Google Mobile Ads SDK
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.android.gms.ads.internal.** { *; }
+-keep class com.google.android.gms.ads.nativead.** { *; }
+-keep class com.google.android.gms.ads.mediation.** { *; }
+
+# Keep AdMob Mediation interfaces
+-keep class com.google.ads.mediation.** { *; }
+-keep interface com.google.ads.mediation.** { *; }
+-keep public class com.google.android.gms.ads.AdActivity { *; }
+
+# Rules Next-Gen SDK classes and public interfaces
+-keep class com.google.android.libraries.ads.mobile.sdk.** { *; }
+-keep interface com.google.android.libraries.ads.mobile.sdk.** { *; }
+
+# Zen plugins: AdZative (com.zen.plugins.adzative, called from C# via JNI) + shortcuts (com.zen.plugins)
+-keep class com.zen.plugins.** { *; }
+
+# --- AppLovin MAX (R8 8.1.56 Compliant Rules) ---
+# Prevent R8 from optimizing out internal serialization model structures and method signatures.
+-keep class com.applovin.** { *; }
+-keepclassmembers class com.applovin.** { *; }
+-keepclassmembernames class com.applovin.** { *; }
+-keep public class com.google.ads.mediation.applovin.** { *; }
+-dontwarn com.applovin.**
+
+# --- ironSource ---
+-keep class com.ironsource.** { *; }
+-keep public class com.google.ads.mediation.ironsource.** { *; }
+-keepclassmembers class com.ironsource.sdk.controller.IronSourceWebView$JSInterface { public *; }
+-dontwarn com.ironsource.**
+
+# --- Unity Ads ---
+-keep class com.unity3d.ads.** { *; }
+-keep class com.unity3d.services.** { *; }
+-keep public class com.google.ads.mediation.unity.** { *; }
+-dontwarn com.unity3d.services.**
+
+# --- TikTok & Pangle ---
+-keep class com.bytedance.sdk.** { *; }
+-keep class com.pangle.global.** { *; }
+-keep class com.tiktok.** { *; }
+-keep public class com.google.ads.mediation.pangle.** { *; }
+-dontwarn com.bytedance.sdk.**
+
+# --- Meta (Facebook) Audience Network ---
+-keep class com.facebook.ads.** { *; }
+-keep public class com.google.ads.mediation.facebook.** { *; }
+-dontwarn com.facebook.ads.internal.**
+
+# --- Vungle (Liftoff) ---
+-keep class com.vungle.warren.** { *; }
+-keep public class com.google.ads.mediation.vungle.** { *; }
+-dontwarn com.vungle.warren.**
+
+# --- Mintegral ---
+-keep class com.mintegral.** { *; }
+-keep interface com.mintegral.** { *; }
+-keep public class com.google.ads.mediation.mintegral.** { *; }
+-dontwarn com.mintegral.**
+
+# --- Adverty ---
+-keep class com.adverty.** { *; }
+-keep interface com.adverty.** { *; }
+-keep enum com.adverty.** { *; }
+-keep class com.unity3d.player.UnityPlayer { *; }
+-keep class com.unity3d.player.UnityPlayerActivity { *; }
+-keep class com.google.android.gms.ads.identifier.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-dontwarn com.adverty.**
+
+# ---------------------------------------------------------------------------------
+# SECTION 5: ATTRIBUTION & ANALYTICS SDKS
+# ---------------------------------------------------------------------------------
+
+# --- AppsFlyer ---
+-keep class com.appsflyer.** { *; }
+-dontwarn com.appsflyer.**
+
+# --- Adjust ---
+-keep class com.adjust.sdk.** { *; }
+-dontwarn com.adjust.sdk.**
+
+# ---------------------------------------------------------------------------------
+# SECTION 6: COMMON SHARED DEPENDENCIES
+# ---------------------------------------------------------------------------------
+
+# --- Networking (OkHttp, Retrofit, Gson) & Other Utilities ---
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-keep class okio.** { *; }
+-keep class retrofit2.** { *; }
+-keep class com.google.gson.** { *; }
+-keep class com.squareup.picasso.** { *; }
+-keep class com.moat.** { *; }
+
+-dontwarn okio.**
+-dontwarn retrofit2.Platform$Java8
+-dontwarn com.squareup.picasso.**
+-dontwarn com.moat.**
+
+# ============================ END OF DEFINITIVE CONFIGURATION ====================

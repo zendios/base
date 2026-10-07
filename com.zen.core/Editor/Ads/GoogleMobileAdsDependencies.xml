@@ -1,0 +1,14 @@
+<dependencies>
+	<androidPackages>
+		<androidPackage spec="androidx.datastore:datastore-preferences:1.1.1" >
+			<repositories>
+				<repository>https://maven.google.com/</repository>
+			</repositories>
+		</androidPackage>
+        <androidPackage spec="androidx.datastore:datastore-core:1.1.1">
+			<repositories>
+				<repository>https://maven.google.com/</repository>
+			</repositories>
+		</androidPackage>
+	</androidPackages>
+</dependencies>

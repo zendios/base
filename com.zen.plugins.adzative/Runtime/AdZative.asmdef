@@ -1,0 +1,12 @@
+{
+    "name": "AdZative",
+    "rootNamespace": "Base.Ads",
+    "references": ["Unity.InputSystem"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "autoReferenced": true,
+    "versionDefines": [
+        { "name": "com.unity.inputsystem", "expression": "1.0.0", "define": "ZEN_INPUT_SYSTEM" }
+    ]
+}

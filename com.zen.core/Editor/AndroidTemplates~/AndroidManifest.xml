@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.unity3d.player"
+          xmlns:tools="http://schemas.android.com/tools">
+
+	<!-- SECTION: PERMISSIONS -->
+	<!-- Required for any vibration or haptic feedback API calls -->
+	<uses-permission android:name="android.permission.VIBRATE"/>
+
+	<!-- Essential permissions for networking, ads, and telemetry -->
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+	<!-- Google Play Billing Library permission for In-App Purchases -->
+	<uses-permission android:name="com.android.vending.BILLING" />
+
+	<!-- 
+     Mandatory for accessing Advertising ID on Android 13+ (API 33+) 
+     This prevents zeroed-out IDs, preserving user targeting and maximizing ad revenue (eCPM).
+    -->
+	<uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
+	<!-- SECTION: APPLICATION -->
+	<application android:name="androidx.multidex.MultiDexApplication"
+                 android:icon="@drawable/app_icon"
+                 android:label="@string/app_name"
+                 android:isGame="true"
+                 android:largeHeap="true"
+                 android:usesCleartextTraffic="true"
+                 android:hardwareAccelerated="true"
+                 tools:replace="android:icon, android:label, android:usesCleartextTraffic, android:hardwareAccelerated">
+
+		<!--
+         SECTION: MAIN UNITY ACTIVITY
+         Optimized for rendering performance, hardware acceleration, and stability.
+        -->
+		<activity android:name="com.unity3d.player.UnityPlayerActivity"
+                  android:theme="@style/UnityThemeSelector"
+                  android:exported="true"
+                  android:launchMode="singleTask"
+                  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+                  android:hardwareAccelerated="true"
+                  android:resizeableActivity="false"
+                  tools:replace="android:hardwareAccelerated">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			<meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+		</activity>
+
+		<!-- 
+         SECTION: GOOGLE PLAY BILLING HARDENING
+         Statically forces ProxyBillingActivity and ProxyBillingActivityV2 to be non-exported.
+         This prevents external scanning bots, debuggers, or malicious intents from launching them, 
+         completely eliminating the NullPointerException crash on Android 14+.
+        -->
+		<activity
+            android:name="com.android.billingclient.api.ProxyBillingActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false"
+            tools:replace="android:exported" />
+
+		<activity
+            android:name="com.android.billingclient.api.ProxyBillingActivityV2"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false"
+            tools:replace="android:exported" />
+
+	</application>
+
+	<!--
+     SECTION: PACKAGE VISIBILITY (QUERIES)
+     Required for target SDKs (Android 11+) so Ad networks can securely verify Google Play Store presence,
+     handle external browser redirections, and process app installs.
+    -->
+	<queries>
+		<intent>
+			<action android:name="android.intent.action.VIEW" />
+			<data android:scheme="http" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.VIEW" />
+			<data android:scheme="https" />
+		</intent>
+		<!-- If your app makes queries to the Play Store, such as
+         for in-app purchases or subscription management. -->
+		<intent>
+			<action android:name="com.android.vending.BILLING" />
+		</intent>
+		<!-- Allows modern Ad and Billing SDKs to check for Google Play Store availability -->
+		<package android:name="com.android.vending" />
+	</queries>
+</manifest>
