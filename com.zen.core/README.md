@@ -2,7 +2,7 @@
 
 Zen Base for Unity games in **one package**, `com.zen.core`: Base.dll, DataManager (save / load, ItemDatas), UI popups,
 currency, extensions, vibration, **ads** (AdsManager, AdMob + AdZative native placements, AdConfig, ZenAdIds, UMP,
-ATT, Taichi, in-app review / update, splash, debug tools), **IAP** (IAPManager, IAPButtonExtent, PopupIAP),
+ATT, Taichi, in-app review / update, splash, debug tools), **IAP** (IAPManager, IAPButtonExtent, UIPopupIAP),
 **Firebase** (Analytics, Remote Config, Crashlytics), screens (ScreenUtils) and **Base > Hub**.
 `com.zen.plugins.adzative` (native ads plugin, built from zen-android) is its only Zen companion.
 
@@ -14,6 +14,10 @@ Inside the package the parts still talk through `ZenAnalytics`, `ZenRemote`, `Ze
 SDK only turns its calls into no-ops.
 
 ## Install in a new game (or an old one)
+
+**Fastest:** drag [Base-Installer.unitypackage](https://github.com/zendios/base/raw/main/installer/Base-Installer.unitypackage)
+into the project (it adds OpenUPM and Base to manifest.json, then removes itself); without DOTween, Base offers to
+install the latest free DOTween from dotween.demigiant.com. Then step 2 below. By hand:
 
 1. `Packages/manifest.json`: the two Base packages from OpenUPM (Google publishes AdMob there too), no GitHub account needed:
    ```json
@@ -38,8 +42,9 @@ SDK only turns its calls into no-ops.
    ExternalDependencyManager, Firebase, AppsFlyer, GooglePlayPlugins, Base) to remove. **Unused packages > Scan** lists the
    packages and built-in modules nothing uses (compiled code, scenes / prefabs / assets, package dependencies);
    **Remove selected** keeps a manifest.json.bak for **Restore**.
-3. DOTween is required (Base > Hub > Setup > Status says so when it is missing): import DOTween (free) from the Asset
-   Store into Assets/Plugins/Demigiant, best before adding Base (Base does not compile without it). DOTween Pro only if
+3. DOTween is required: without it Base stays off (its assemblies need the DOTWEEN symbol, so no compile errors) and a
+   dialog offers to download and import the latest free DOTween (official site); DOTween found but no DOTWEEN symbol:
+   Base adds the symbol. DOTween Pro only if
    the game uses its features; it is paid, so add it by hand (Base never ships it). No ASMDEF step: Base uses only
    DOTween.dll.
 4. **Base > Hub > Setup**: press **Fix all**, then fill the ad IDs (Base > Hub > Ad IDs)

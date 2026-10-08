@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine.Networking;
 using System.Text.RegularExpressions;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -87,25 +88,44 @@ namespace Base.Setup
         public static bool Selected(Sdk s) => s.group == SdkGroup.Required || EditorPrefs.GetBool(PrefKey(s), s.defaultOn);
         public static void SetSelected(Sdk s, bool on) => EditorPrefs.SetBool(PrefKey(s), on);
 
-        /// <summary>Asks the official sources for the newest version of every SDK (UnityWebRequest, all at once).
-        /// Setup runs it once per editor session; "" = the check failed for that SDK.</summary>
+        /// <summary>Asks the official sources for the newest version of every SDK, all at once: registries (OpenUPM,
+        /// Unity) by UnityWebRequest, GitHub projects (AppsFlyer, Firebase) by the tags of their repository
+        /// (git ls-remote, no GitHub API rate limit). Setup runs it once per editor session; "" = the check failed.</summary>
         public static void CheckLatest()
         {
             if (Checking) return;
             Checking = true;
             SessionState.SetBool("Base.Sdk.Checked", true);
             var pending = All.Select(s => (sdk: s, req: Request(s))).ToList();
+            var tags = new Dictionary<Sdk, string>();
+            bool tagsDone = false;
+            var gitSdks = All.Where(s => GitRepo(s) != null).ToList();
+            new Thread(() =>
+            {
+                foreach (var s in gitSdks)
+                {
+                    string latest = "";
+                    try { latest = LatestTag(GitRepo(s)); }
+                    catch (Exception ex) { Debug.LogWarning($"[Base Setup] {s.display}: version check failed: {ex.Message}"); }
+                    lock (tags) tags[s] = latest;
+                }
+                tagsDone = true;
+            }) { IsBackground = true }.Start();
             void Poll()
             {
-                if (pending.Any(p => p.req != null && !p.req.isDone))
+                if (!tagsDone || pending.Any(p => p.req != null && !p.req.isDone))
                     return;
                 EditorApplication.update -= Poll;
                 foreach (var (s, req) in pending)
                 {
-                    if (req == null) { s.latest = "-"; continue; }   // no official feed to ask (Asset Store)
+                    if (req == null)
+                    {
+                        s.latest = tags.TryGetValue(s, out var t) ? t : "-";   // "-": no official feed (Asset Store)
+                        continue;
+                    }
                     if (req.result != UnityWebRequest.Result.Success)
                         Debug.LogWarning($"[Base Setup] {s.display}: version check failed: {req.error}");
-                    s.latest = req.result == UnityWebRequest.Result.Success ? Parse(s, req.downloadHandler.text) : "";
+                    s.latest = req.result == UnityWebRequest.Result.Success ? Match(req.downloadHandler.text, @"""latest""\s*:\s*""([^""]+)""") : "";
                     req.Dispose();
                 }
                 Checking = false;
@@ -121,6 +141,16 @@ namespace Base.Setup
                 CheckLatest();
         }
 
+        private static string GitRepo(Sdk s) =>
+            s.source == SdkSource.AppsFlyerGit ? "https://github.com/AppsFlyerSDK/appsflyer-unity-plugin.git"
+            : s.source == SdkSource.Firebase ? "https://github.com/firebase/firebase-unity-sdk.git" : null;
+
+        /// <summary>Highest x.y.z (or vx.y.z) tag of a repository, without the "v".</summary>
+        private static string LatestTag(string repo) =>
+            ZenUpdateChecker.Git($"ls-remote --tags --refs {repo}").Split('\n')
+                .Select(l => Regex.Match(l, @"refs/tags/v?(\d+\.\d+\.\d+)\s*$")).Where(m => m.Success)
+                .Select(m => m.Groups[1].Value).OrderByDescending(v => new Version(v)).FirstOrDefault() ?? "";
+
         private static UnityWebRequest Request(Sdk s)
         {
             string url;
@@ -128,21 +158,13 @@ namespace Base.Setup
             {
                 case SdkSource.OpenUpm: url = "https://package.openupm.com/" + s.id; break;
                 case SdkSource.UnityRegistry: url = "https://packages.unity.com/" + s.id; break;
-                case SdkSource.AppsFlyerGit: url = "https://api.github.com/repos/AppsFlyerSDK/appsflyer-unity-plugin/releases/latest"; break;
-                case SdkSource.Firebase: url = "https://api.github.com/repos/firebase/firebase-unity-sdk/releases/latest"; break;
-                default: return null;
+                default: return null;   // git tags (AppsFlyer, Firebase) or no feed (DOTween)
             }
             var req = UnityWebRequest.Get(url);
-            req.SetRequestHeader("User-Agent", "Base-Hub");   // GitHub API needs one
             req.timeout = 20;
             req.SendWebRequest();
             return req;
         }
-
-        private static string Parse(Sdk s, string json) =>
-            s.source == SdkSource.AppsFlyerGit || s.source == SdkSource.Firebase
-                ? Match(json, @"""tag_name""\s*:\s*""v?([^""]+)""")
-                : Match(json, @"""latest""\s*:\s*""([^""]+)""");
 
         private static string Match(string text, string pattern)
         {

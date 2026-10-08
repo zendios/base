@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.2.6] - 2026-10-08
+- Easier install: Base's assemblies and DLLs need the DOTWEEN symbol (no compile errors without DOTween); the
+  Zen.Bootstrap editor assembly adds DOTWEEN when DOTween is there, or offers to download and import the latest free
+  DOTween from dotween.demigiant.com. Publish also puts installer/Base-Installer(-x.y.z).unitypackage in
+  github.com/zendios/base: dragged into a project it adds OpenUPM (com.zen, com.google) and Base to manifest.json.
+- Package Manager names: com.zen.core is "Base", com.zen.plugins.adzative is "Base Native Ad".
+
 ## [1.2.5] - 2026-10-07
 - DOTween: Base needs only DOTween.dll (DOTween free or Pro in Assets), no ASMDEF: AdToast's slider tween uses
   DOTween.To instead of the UI module's DOValue and Zen.Core no longer references DOTween.Modules. Setup > Status

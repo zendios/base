@@ -12,7 +12,7 @@ namespace Base
         /// <summary>Makes a button buy the game's Remove Ads product (com.zen.iap). Args: button object, particle start.</summary>
         public static Action<GameObject, Transform> SetupRemoveAdsButton { get; set; }
 
-        /// <summary>Opens the game's shop (com.zen.iap shows PopupIAP).</summary>
+        /// <summary>Opens the game's shop (com.zen.iap shows UIPopupIAP).</summary>
         public static Action OpenShop { get; set; }
 
         /// <summary>Raised when a purchase starts: com.zen.ads holds interstitials for a while.</summary>

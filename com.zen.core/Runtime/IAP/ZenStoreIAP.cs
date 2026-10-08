@@ -11,7 +11,7 @@ namespace Base
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Register()
         {
-            ZenStore.OpenShop = () => PopupIAP.Show();
+            ZenStore.OpenShop = () => UIPopupIAP.Show();
             ZenStore.SetupRemoveAdsButton = SetupRemoveAds;
         }
 

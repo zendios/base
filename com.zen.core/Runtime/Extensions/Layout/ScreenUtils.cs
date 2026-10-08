@@ -11,6 +11,7 @@ using UnityEngine.UI;
 ///    so buttons do not grow to 2-3 cm (needs a real DPI: device or Device Simulator).
 /// Runs in play mode only.
 /// </summary>
+[ExecuteInEditMode]
 [RequireComponent(typeof(CanvasScaler))]
 public class ScreenUtils : MonoBehaviour
 {

@@ -41,7 +41,7 @@ namespace Base
     /// <summary>
     /// Installs the Firebase Unity SDK (app, analytics, remote-config, crashlytics) from Google's official package
     /// archive (dl.google.com/games/registry/unity): the .tgz go into Packages/ with file: entries in manifest.json.
-    /// Base pins one tested version (Pinned); BaseSdks.CheckLatest asks the official firebase/firebase-unity-sdk releases
+    /// Base pins one tested version (Pinned); BaseSdks.CheckLatest reads the official firebase/firebase-unity-sdk tags
     /// for a newer one, which the Setup tab offers as an Update.
     /// </summary>
     internal static class FirebaseInstaller

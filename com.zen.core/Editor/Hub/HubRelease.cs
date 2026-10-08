@@ -62,6 +62,10 @@ namespace Base.Setup
                 version = Version.TryParse(current, out var v) ? $"{v.Major}.{v.Minor}.{v.Build + 1}" : current;
             changes = Commits(current, out since);
             pending = Pending();
+            // a version created before a recompile / restart and not published yet: Publish stays available
+            if (released == null && TryGit($"rev-parse --verify --quiet zen/{current}^{{commit}}") != null
+                && TryGit($"ls-remote --tags {PublicUrl} refs/tags/{current}") == null)
+                released = current;
             if (notes == null)
             {
                 notes = Unreleased(File.ReadAllText(Path.Combine(Repo, Changelog)));
@@ -428,6 +432,7 @@ namespace Base.Setup
         }
 
         private static string PublishScript => Path.Combine(Repo, "tools/base-publish.sh");
+        private const string PublicUrl = "https://github.com/zendios/base.git";
         private string published;   // version published in this session (OpenUPM status)
         private string openUpm;     // "" = not on OpenUPM yet, else its latest version
 

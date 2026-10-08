@@ -69,9 +69,10 @@ namespace Base
         {
             if (storeController == null)
             {
-                Debug.LogError("[IAP] StoreController is null. Make sure IAPManager is initialized.");
+                Debug.LogWarning("[IAP] StoreController is null. Make sure IAPManager is initialized.");
                 return;
             }
+
             if (product != null)
                 ZenAnalytics.LogIAP(name, productId, IAPStatus.Show, localizedPrice, isoCurrencyCode);
         }
@@ -79,10 +80,7 @@ namespace Base
         private void OnDestroy()
         {
             if (storeController == null)
-            {
-                Debug.LogError("[IAP] StoreController is null. Make sure IAPManager is initialized.");
                 return;
-            }
 
             storeController.OnPurchasePending -= OnPurchasePending;
             storeController.OnPurchaseConfirmed -= OnPurchaseConfirmed;
