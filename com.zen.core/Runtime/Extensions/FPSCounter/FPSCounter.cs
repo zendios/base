@@ -27,7 +27,7 @@ public class FPSCounter : MonoBehaviour
     {
         for (int i = 0; i < _cacheNumbersAmount; i++)
         {
-            CachedNumberStrings[i] = i.ToString();
+            CachedNumberStrings[i] = "FPS: " + i;
         }
 
         _frameRateSamples = new int[_averageFromAmount];
@@ -57,7 +57,7 @@ public class FPSCounter : MonoBehaviour
         // Assign to UI
         Text.text = _currentAveraged switch
         {
-            var x when x >= 0 && x < _cacheNumbersAmount => "FPS: " + CachedNumberStrings[x],
+            var x when x >= 0 && x < _cacheNumbersAmount => CachedNumberStrings[x],
             var x when x >= _cacheNumbersAmount => $"FPS: > {_cacheNumbersAmount}",
             var x when x < 0 => "FPS: < 0",
             _ => "FPS ???"

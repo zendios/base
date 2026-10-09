@@ -110,12 +110,28 @@ public class CurrencyManager : MonoBehaviour
 
 
 
+    /// <summary>One HUD per scene: the newest CurrencyManager is the one the static API talks to (an additively
+    /// loaded scene's HUD replaces the previous scene's); a second one in the same scene is a mistake and is removed.</summary>
     private void Awake()
     {
+        if (instance != null && instance != this && instance.gameObject.scene == gameObject.scene)
+        {
+            Debug.LogWarning($"[CurrencyManager] two in scene {gameObject.scene.name}: {name} removed, {instance.name} kept.");
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
         DataManagerOnLoaded();
         DataManager.OnLoaded += DataManagerOnLoaded;
         GameStateManager.OnGameStateChanged += OnGameStateChanged;
+    }
+
+    private void OnDestroy()
+    {
+        DataManager.OnLoaded -= DataManagerOnLoaded;
+        GameStateManager.OnGameStateChanged -= OnGameStateChanged;
+        if (instance == this)
+            instance = null;
     }
 
     private void OnGameStateChanged(GameState current, GameState last, object data = null)

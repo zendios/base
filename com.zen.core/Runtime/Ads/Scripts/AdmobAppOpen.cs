@@ -52,7 +52,6 @@ namespace Base.Ads
         {
 #if USE_ADMOB
             AppStateEventNotifier.AppStateChanged += OnAppStateChanged;
-            OnAppOpenStateChanged += OnAppOpenStateChanged;
 #endif
         }
 

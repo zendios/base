@@ -33,14 +33,16 @@ namespace Base.Setup
         private static SerializedObject PlayerSettingsAsset() =>
             new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
 
-        private static string TemplatesFolder
+        private static string PackageFolder
         {
             get
             {
                 var info = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(CoreSetupModule).Assembly);
-                return Path.Combine(info != null ? info.resolvedPath : "Packages/com.zen.core", "Editor", "AndroidTemplates~");
+                return info != null ? info.resolvedPath : "Packages/com.zen.core";
             }
         }
+
+        private static string TemplatesFolder => Path.Combine(PackageFolder, "Editor", "AndroidTemplates~");
 
         public IEnumerable<ZenSetupIssue> Check()
         {
@@ -55,6 +57,20 @@ namespace Base.Setup
                     type = MessageType.Error,
                     fixLabel = "Asset Store",
                     fix = () => Application.OpenURL("https://assetstore.unity.com/packages/tools/animation/dotween-hotween-v2-27676"),
+                };
+
+            // the package's AGENTS.md at the project root: Claude / Cursor / Copilot read it there (never in Packages/)
+            string agentsSource = Path.Combine(PackageFolder, "AGENTS.md");
+            if (File.Exists(agentsSource) && !File.Exists("AGENTS.md") && !File.Exists("CLAUDE.md"))
+                yield return new ZenSetupIssue
+                {
+                    message = "AGENTS.md (Base rules and API map for AI agents and new developers) is not in the project root yet.",
+                    fixLabel = "Copy",
+                    fix = () =>
+                    {
+                        File.Copy(agentsSource, "AGENTS.md");
+                        Debug.Log("[Base Setup] copied AGENTS.md to the project root (edit it: it is the game's now).");
+                    },
                 };
 
             if (Directory.Exists(TemplatesFolder))

@@ -13,6 +13,11 @@ Unity IAP (`USE_IN_APP_PURCHASE`), Firebase (`USE_FIREBASE`), AppsFlyer (`USE_AP
 Inside the package the parts still talk through `ZenAnalytics`, `ZenRemote`, `ZenStore` and `ZenToast`, so a missing
 SDK only turns its calls into no-ops.
 
+**Docs:** [AGENTS.md](AGENTS.md) (rules for AI agents and new developers),
+[Documentation~/Architecture.md](Documentation~/Architecture.md) (managers, API, examples),
+[Documentation~/ZPAS.md](Documentation~/ZPAS.md) (naming and folder standard). Base > Hub > Setup (Fix all) copies
+`AGENTS.md` to the game's project root so Claude / Cursor / Copilot read it.
+
 ## Install in a new game (or an old one)
 
 **Fastest:** drag [Base-Installer.unitypackage](https://github.com/zendios/base/releases/latest/download/Base-Installer.unitypackage)

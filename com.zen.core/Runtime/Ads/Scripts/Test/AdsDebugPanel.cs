@@ -91,7 +91,7 @@ public class AdsDebugPanel : MonoBehaviour
         sb.AppendLine($"flows inter={c.adInterFlow} reward={c.adRewardFlow} appOpen={c.adAppOpenFlow} banner={c.adBannerFlow}");
         sb.AppendLine($"config timePlayToShow={c.adTimePlayToShow} timePlayReduceToShow={c.adTimePlayReduceToShow} timeBetween={c.adTimeBetween} loadTimeout={c.adLoadTimeout} interOnPlay={c.adInterOnPlay} interVsRewardRatio={c.adInterVsRewardRatio} bannerReload={c.adBannerReload} interOnStart={c.adInterOnStart} interOnComplete={c.adInterOnComplete} interOnFTUE={c.adInterOnFTUE} mrecOnFTUE={c.adMrecOnFTUE}");
         sb.AppendLine($"counters inter={u.adInterstitial} reward={u.adRewarded} rewardSkipped={u.adRewardSkipped} total={u.adTotal} forceRewardNext={AdsManager.ForceReward}");
-        foreach (var ad in AdsManager.Placements.Values.Concat(FindObjectsOfType<AdBase>(true)).Where(a => a != null).Distinct().OrderBy(a => a.placement.ToString()))
+        foreach (var ad in AdsManager.Placements.Values.Concat(FindObjectsByType<AdBase>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID)).Where(a => a != null).Distinct().OrderBy(a => a.placement.ToString()))
         {
             string timing = ad is AdZative z ? $" timing={JsonUtility.ToJson(z.Timing)} pod={z.PodSize}" : "";
             sb.AppendLine($"  {ad.placement}: {ad.state} ready={ad.isCanShow} source={ad.SourceName} error={ad.LastError}{timing}");

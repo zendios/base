@@ -215,7 +215,7 @@ namespace Base.Ads
 
                 if (DebugMode.IsOn)
                     IsDebug = true;
-                DebugMode.OnChanged += (isOn) => IsDebug = isOn;
+                DebugMode.OnChanged += OnDebugModeChanged;
             }
             catch (Exception ex)
             {
@@ -223,9 +223,11 @@ namespace Base.Ads
             }
         }
 
+        private void OnDebugModeChanged(bool isOn) => IsDebug = isOn;
+
         private void OnDestroy()
         {
-            DebugMode.OnChanged -= (isOn) => IsDebug = isOn;
+            DebugMode.OnChanged -= OnDebugModeChanged;
         }
 
         private void OnValidate()

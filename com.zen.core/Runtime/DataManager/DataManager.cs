@@ -309,6 +309,17 @@ public class DataManager : DataManagerBase
         ZenToast.ShowNotice("Everything is unlocked!");
     }
 
+    /// <summary>Deletes the save file and the trial times (stored in PlayerPrefs under each item's id).</summary>
+    public override void ClearAllData()
+    {
+        base.ClearAllData();
+        foreach (var itemDatas in ItemDatas)
+            foreach (var item in itemDatas.saveList)
+                if (!string.IsNullOrEmpty(item.id))
+                    PlayerPrefs.DeleteKey(item.id);
+        PlayerPrefs.Save();
+    }
+
     public void ResetData()
     {
         ClearAllData();

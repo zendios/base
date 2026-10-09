@@ -15,13 +15,17 @@ namespace Base.Base
             {
                 DebugMode.Count++;
             });
-
-            DataManager.OnLoaded += DataManagerOnLoaded;
         }
 
         private void OnEnable()
         {
+            DataManager.OnLoaded += DataManagerOnLoaded;
             UpdateVersionInfo();
+        }
+
+        private void OnDisable()
+        {
+            DataManager.OnLoaded -= DataManagerOnLoaded;
         }
 
         private void OnValidate()

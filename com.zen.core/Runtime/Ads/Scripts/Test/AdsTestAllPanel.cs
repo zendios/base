@@ -624,7 +624,7 @@ public class AdsTestAllPanel : MonoBehaviour
     private static List<AdBase> AllPlacements()
     {
         var list = new List<AdBase>(AdsManager.Placements.Values.Where(a => a != null));
-        foreach (var a in FindObjectsOfType<AdBase>(true))
+        foreach (var a in FindObjectsByType<AdBase>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID))
             if (!list.Contains(a)) list.Add(a);
         return list.OrderBy(a => a.placement.ToString()).ToList();
     }

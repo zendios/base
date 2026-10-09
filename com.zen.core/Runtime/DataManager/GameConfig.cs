@@ -7,11 +7,11 @@ using UnityEditor;
 
 namespace Base
 {
-    [CreateAssetMenu(fileName = "GameConfig", menuName = "DataAsset/GameConfig")]
+    /// <summary>The game's config: a plain serializable class saved inside GameData (DataManager.GameConfig), filled by
+    /// Remote Config (GameConfigRemote). Not an asset. Add the game's own fields here.</summary>
     [Serializable]
     public class GameConfig : GameConfigBase
     {
-        [Header("TODO: add more properties in here!")]
         public int autoNextLevel;
     }
 }

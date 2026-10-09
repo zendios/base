@@ -1,6 +1,6 @@
 {
     "name": "com.zen.core",
-    "version": "1.2.7",
+    "version": "1.2.8",
     "displayName": "Base",
     "license": "MIT",
     "unity": "2022.3",
@@ -14,7 +14,7 @@
         "com.unity.textmeshpro": "3.0.9",
         "com.unity.ugui": "1.0.0",
         "com.unity.inputsystem": "1.7.0",
-        "com.zen.plugins.adzative": "1.2.7",
+        "com.zen.plugins.adzative": "1.2.8",
         "com.google.ads.mobile": "11.5.0"
     },
     "documentationUrl": "https://github.com/zendios/base/blob/main/com.zen.core/README.md",

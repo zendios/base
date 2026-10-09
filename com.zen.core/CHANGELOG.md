@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [1.2.8] - 2026-10-09
+- Documentation~/Skills: the ZPAS standard (zen-unity-asset-standard) and the ZEN rules (zen-unity-rules) ship
+  inside the package; the release stops when one is missing.
+- ZPAS names: the parent (nearest folder that is not a type folder) is always in the name, a number only when there are
+  several variants, part -> type -> property; atlases ui_<parent>_atlas_<function>; audio starts with sfx / bgm.
+- Assets renamed to ZPAS (GUIDs kept, references unchanged): Ads images / materials / animations / atlas
+  (ui_ads_*, ads_*_mat, ads_*_ani, ui_ads_atlas_common), CurrencyManager (currency_manager_soft_currency_*),
+  FX moved into Runtime/FXManager (ConfettiFX, WeatherFX, SmokeFX) with confetti_fx_*, weather_fx_*, smoke_fx_* names,
+  Button_IAP -> IAPButtonExtent.
+- Base > Rename Assets (Editor): statistics of the folders to fix (third-party SDK folders skipped), a suggested ZPAS
+  name per asset, names still used in code flagged, click a name to select the asset, rename the selected ones (GUIDs stay).
+- Fixes from the project review: AdmobAppOpen no longer subscribes its static delegate to itself (handlers ran twice);
+  AdsManager unsubscribes the DebugMode handler it subscribed (it used a new lambda); VersionInfo subscribes to
+  DataManager.OnLoaded in OnEnable and unsubscribes in OnDisable. Base: the BinaryFormatter save / load paths
+  (FileData.Save / SaveAsync / Load, DataManagerBase.Save / SaveAsync / Load) are removed; save data is JSON only.
+  ClearAllData deletes the save file and the item trial times, and keeps PlayerPrefs (SDK and user settings);
+  DataManager overrides it (virtual), so a game that reset everything through PlayerPrefs.DeleteAll must delete its own keys.
+- Project: unused packages removed (timeline, visualscripting, ide.vscode); InputSystem_Actions is no longer the
+  project-wide actions asset.
+- CurrencyManager: a second one in the same scene is removed (warning), the newest scene's HUD is the active one,
+  events are unsubscribed on destroy. GameConfig is documented as a plain class (no stray CreateAssetMenu).
+  Prefabs Admob_Mrec_Open / AdZative_Mrec_Open for PlacementType *MrecOpen. Sample scenes: GameStateManager in the
+  splash scene, CurrencyManager under UIManager in the sample scene.
+- Docs for developers and AI agents: AGENTS.md (rules, API map; Base > Hub > Setup copies it to the game's project
+  root), Documentation~/Architecture.md (managers, API, examples), Documentation~/ZPAS.md (naming / folder standard).
+
 ## [1.2.7] - 2026-10-09
 - Fix: 1.2.5 and 1.2.6 on OpenUPM had no Base.dll / Base.Editor.dll (a global *.dll gitignore left them out of the
   public repo), so a new project got hundreds of "type not found" errors (GameState, AdType, UIAnim...). Publish now
