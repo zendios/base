@@ -8,8 +8,8 @@ Release copies of the two Base packages (published from Base > Hub > Release, al
 
 ## Install
 
-**One file:** download [Base-Installer.unitypackage](https://github.com/zendios/base/raw/main/installer/Base-Installer.unitypackage)
-(this version: [Base-Installer-1.2.6.unitypackage](https://github.com/zendios/base/raw/1.2.6/installer/Base-Installer-1.2.6.unitypackage))
+**One file:** download [Base-Installer.unitypackage](https://github.com/zendios/base/releases/latest/download/Base-Installer.unitypackage)
+from the [latest release](https://github.com/zendios/base/releases/latest) (every version: [Releases](https://github.com/zendios/base/releases))
 and drag it into the Unity project. It adds the OpenUPM registry and Base 1.2.6 to Packages/manifest.json and
 removes itself. Without DOTween, Base then offers to download and import the latest free DOTween from
 dotween.demigiant.com (DOTween Pro: import it from the Asset Store instead). Then **Base > Hub > Setup**.
