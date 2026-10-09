@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [1.2.7] - 2026-10-09
+- Fix: 1.2.5 and 1.2.6 on OpenUPM had no Base.dll / Base.Editor.dll (a global *.dll gitignore left them out of the
+  public repo), so a new project got hundreds of "type not found" errors (GameState, AdType, UIAnim...). Publish now
+  force-adds the packages and stops when a DLL is missing. Use 1.2.7 or later.
+- New project defaults: the Android Resolver (EDM4U) auto-resolution is off without the "Enable Android
+  Auto-resolution?" prompt (Base Installer and Base write it once; a choice made later stays). After DOTween is imported,
+  Base sets its modules: Audio, Sprites, UI on; Physics, Physics2D, UI Toolkit off.
+- Base Installer is downloaded from GitHub Releases (github.com/zendios/base/releases, latest:
+  releases/latest/download/Base-Installer.unitypackage); Publish creates the release with the CHANGELOG notes.
+- UI framework (shipped in 1.2.6): UIManager (screens with history, popup stack, toast, message, back key; every step
+  virtual), UIView / UIScreen / UIPopup / `UIPopupBase<T>`, UIPopupMessage (title, message, confirm / cancel),
+  UIManagerDebug prefab (test buttons made of ButtonTestAd).
+- ZPAS names (shipped in 1.2.6): PopupBase -> UIPopupBase, PopupMessage -> UIPopupMessage, PopupIAP -> UIPopupIAP;
+  prefabs Button_*, Canvas_Base*, Popup_*, Icon_Base, Text_Base, UI_Camera; sprites ui_common_* / ui_iap_*.
+- UIAnim (shipped in 1.2.6): Fade In / Fade Out always use Parent Position (the view no longer shows pushed to the
+  bottom edge); the Inspector hides Position Start / Position Out for Fade.
+
 ## [1.2.6] - 2026-10-08
 - Easier install: Base's assemblies and DLLs need the DOTWEEN symbol (no compile errors without DOTween); the
   Zen.Bootstrap editor assembly adds DOTWEEN when DOTween is there, or offers to download and import the latest free

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Build;
@@ -25,10 +26,38 @@ namespace Base.Bootstrap
         private const string DownloadPage = "https://dotween.demigiant.com/download.php";
         private const string ProStoreUrl = "https://assetstore.unity.com/packages/tools/visual-scripting/dotween-pro-32416";
         private const string SkipKey = "Base.Bootstrap.SkipDotween";
+        private const string ConfigureKey = "Base.Bootstrap.ConfigureDotween";
+        private const string DotweenSettingsPath = "Assets/Resources/DOTweenSettings.asset";
 
         static BaseBootstrap()
         {
+            EdmDefaults();   // now, before EDM4U (Android Resolver) loads and asks
             EditorApplication.delayCall += Check;
+        }
+
+        /// <summary>EDM4U (Android Resolver): auto-resolution off, no "Enable Android Auto-resolution?" prompt
+        /// (resolve with Assets > External Dependency Manager > Android Resolver > Resolve; Base > Hub > Setup does it).
+        /// Only keys the project has not set yet: a choice made in the Android Resolver settings stays.</summary>
+        private static void EdmDefaults()
+        {
+            try
+            {
+                const string path = "ProjectSettings/GvhProjectSettings.xml";
+                string xml = File.Exists(path) ? File.ReadAllText(path)
+                    : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<projectSettings>\n</projectSettings>";
+                bool changed = false;
+                foreach (var key in new[] { "GooglePlayServices.AutoResolverEnabled", "GooglePlayServices.PromptBeforeAutoResolution" })
+                {
+                    if (xml.Contains($"name=\"{key}\"") || !xml.Contains("</projectSettings>")) continue;
+                    xml = xml.Replace("</projectSettings>", $"  <projectSetting name=\"{key}\" value=\"False\" />\n</projectSettings>");
+                    changed = true;
+                }
+                if (changed) File.WriteAllText(path, xml);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("[Base] Android Resolver settings: " + ex.Message);
+            }
         }
 
         private static bool HasDotween =>
@@ -42,6 +71,9 @@ namespace Base.Bootstrap
             if (HasDotween)
             {
                 AddSymbol();
+                // DOTween just imported (by Base, or by hand: no DOTweenSettings yet): Base's module defaults
+                if (SessionState.GetBool(ConfigureKey, false) || AssetDatabase.FindAssets("DOTweenSettings").Length == 0)
+                    ConfigureDotween();
                 return;
             }
             if (SessionState.GetBool(SkipKey, false))
@@ -96,7 +128,60 @@ namespace Base.Bootstrap
             if (!name.StartsWith("DOTween")) return;
             AssetDatabase.importPackageCompleted -= OnImported;
             AddSymbol();
+            SessionState.SetBool(ConfigureKey, true);   // DOTween's editor dll loads after the next reload: Check() then
             Debug.Log("[Base] DOTween installed; Base compiles now (DOTWEEN symbol set).");
+        }
+
+        /// <summary>DOTween modules as Base uses them: Audio, Sprites, UI on; Physics, Physics2D, UI Toolkit, TextMesh Pro
+        /// and the other external modules off. The same as ticking them in the DOTween Utility Panel and pressing Apply.
+        /// Waits (next reload) until DOTween's editor dll is loaded.</summary>
+        private static void ConfigureDotween()
+        {
+            var settingsType = Type.GetType("DG.Tweening.Core.DOTweenSettings, DOTween");
+            var modulesType = Type.GetType("DG.DOTweenEditor.UI.DOTweenUtilityWindowModules, DOTweenEditor");
+            if (settingsType == null || modulesType == null)
+            {
+                SessionState.SetBool(ConfigureKey, true);
+                return;
+            }
+            SessionState.EraseBool(ConfigureKey);
+            try
+            {
+                string path = AssetDatabase.FindAssets("DOTweenSettings").Select(AssetDatabase.GUIDToAssetPath)
+                    .FirstOrDefault(p => p.EndsWith(".asset"));
+                var settings = path != null ? AssetDatabase.LoadAssetAtPath(path, settingsType) : null;
+                if (settings == null)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(DotweenSettingsPath));
+                    settings = ScriptableObject.CreateInstance(settingsType);
+                    AssetDatabase.CreateAsset(settings, DotweenSettingsPath);
+                }
+                var so = new SerializedObject(settings);
+                foreach (var (module, on) in new[]
+                         {
+                             ("audioEnabled", true), ("physicsEnabled", false), ("physics2DEnabled", false), ("spriteEnabled", true),
+                             ("uiEnabled", true), ("uiToolkitEnabled", false), ("textMeshProEnabled", false), ("tk2DEnabled", false),
+                             ("deAudioEnabled", false), ("deUnityExtendedEnabled", false), ("epoOutlineEnabled", false),
+                         })
+                {
+                    var p = so.FindProperty("modules." + module);
+                    if (p != null) p.boolValue = on;
+                }
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(settings);
+                AssetDatabase.SaveAssets();
+
+                const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+                var refresh = modulesType.GetMethod("RefreshDOTweenSettings", flags);
+                if (refresh != null && refresh.GetParameters().Length == 1)
+                    refresh.Invoke(null, new object[] { settings });
+                modulesType.GetMethod("ApplyModulesSettings", flags)?.Invoke(null, null);
+                Debug.Log("[Base] DOTween modules set: Audio, Sprites, UI on; Physics, Physics2D, UI Toolkit off (Tools > Demigiant > DOTween Utility Panel to change).");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("[Base] DOTween modules not set (open Tools > Demigiant > DOTween Utility Panel): " + ex.Message);
+            }
         }
 
         /// <summary>DOTWEEN for the active platform and the usual mobile / desktop ones.</summary>

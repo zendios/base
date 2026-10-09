@@ -15,7 +15,8 @@ SDK only turns its calls into no-ops.
 
 ## Install in a new game (or an old one)
 
-**Fastest:** drag [Base-Installer.unitypackage](https://github.com/zendios/base/raw/main/installer/Base-Installer.unitypackage)
+**Fastest:** drag [Base-Installer.unitypackage](https://github.com/zendios/base/releases/latest/download/Base-Installer.unitypackage)
+(every version: [Releases](https://github.com/zendios/base/releases))
 into the project (it adds OpenUPM and Base to manifest.json, then removes itself); without DOTween, Base offers to
 install the latest free DOTween from dotween.demigiant.com. Then step 2 below. By hand:
 
