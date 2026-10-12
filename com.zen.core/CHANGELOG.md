@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [1.2.9] - 2026-10-12
+- AdMob is required by Base and by its native ads: com.zen.plugins.adzative now depends on com.google.ads.mobile 11.5.0
+  (installing AdZative alone also brings AdMob). USE_ADMOB is set in the scripting symbols while the AdMob SDK is in the
+  project (package or the old Assets/GoogleMobileAds import), like USE_ADZATIVE, so AdZative and the game see it too;
+  without the SDK the symbol is removed and Base offers to install AdMob 11.5.0; the package next to the old import
+  (two GoogleMobileAds.dll) is reported.
+- TMP Essential Resources are imported silently when the project has none (no "TMP Importer" window); the same call
+  as its "Import TMP Essentials" button, for TextMesh Pro 3.x and the ugui 2.0 of Unity 6.
+
 ## [1.2.8] - 2026-10-09
 - Documentation~/Skills: the ZPAS standard (zen-unity-asset-standard) and the ZEN rules (zen-unity-rules) ship
   inside the package; the release stops when one is missing.

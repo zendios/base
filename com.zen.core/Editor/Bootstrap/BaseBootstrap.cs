@@ -60,6 +60,37 @@ namespace Base.Bootstrap
             }
         }
 
+        private const string TmpSettingsPath = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
+        private const string TmpImportKey = "Base.Bootstrap.TmpEssentials";
+
+        /// <summary>
+        /// TMP Essential Resources (TMP Settings, default font, shaders), imported silently when the project has none,
+        /// so the "TMP Importer" window never asks. The same call as its "Import TMP Essentials" button; through
+        /// reflection because this assembly has no dependency (TMP 3.x and the ugui 2.0 of Unity 6 both have it).
+        /// </summary>
+        private static void ImportTmpEssentials()
+        {
+            if (File.Exists(TmpSettingsPath) || AssetDatabase.FindAssets("\"TMP Settings\"").Length > 0)
+                return;
+            if (SessionState.GetBool(TmpImportKey, false))
+                return;   // imported this session: the package import is still running
+            var importer = Type.GetType("TMPro.TMP_PackageResourceImporter, Unity.TextMeshPro");
+            var import = importer?.GetMethod("ImportResources", BindingFlags.Public | BindingFlags.Static);
+            if (import == null)
+                return;   // no TextMeshPro in the project yet
+            SessionState.SetBool(TmpImportKey, true);
+            try
+            {
+                import.Invoke(null, new object[] { true, false, false });   // essentials, no examples, not interactive
+                Debug.Log("[Base] TMP Essential Resources imported (TextMesh Pro settings, default font and shaders).");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("[Base] TMP Essential Resources not imported (Window > TextMeshPro > Import TMP Essential Resources): "
+                                 + (ex.InnerException ?? ex).Message);
+            }
+        }
+
         private static bool HasDotween =>
             AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "DOTween")
             || AssetDatabase.FindAssets("DOTween t:DefaultAsset").Select(AssetDatabase.GUIDToAssetPath).Any(p => p.EndsWith("/DOTween.dll"));
@@ -68,6 +99,8 @@ namespace Base.Bootstrap
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode || Application.isBatchMode)
                 return;
+            ImportTmpEssentials();
+            CheckAdmob();
             if (HasDotween)
             {
                 AddSymbol();
@@ -185,7 +218,44 @@ namespace Base.Bootstrap
         }
 
         /// <summary>DOTWEEN for the active platform and the usual mobile / desktop ones.</summary>
-        private static void AddSymbol()
+        private static void AddSymbol() => SetSymbol(Symbol, true, "Base turns on with DOTween");
+
+        private const string AdmobSymbol = "USE_ADMOB";
+        private const string AdmobPackage = "com.google.ads.mobile";
+        private const string AdmobTested = "11.5.0";   // the version in Base > Hub > Setup > SDKs and in both package.json
+        private const string AdmobAskKey = "Base.Bootstrap.AskAdmob";
+
+        /// <summary>
+        /// AdMob is required: Base's ads and its native ads (AdZative, USE_ADZATIVE) are built on the Google Mobile Ads SDK.
+        /// USE_ADMOB is kept in the scripting symbols while the SDK (GoogleMobileAds.dll) is in the project, from the package
+        /// or the old Assets/GoogleMobileAds import, so every assembly sees it (Zen.Core, AdZative, the game). Without the
+        /// SDK the symbol is removed and Base offers to install the tested version, once per editor session.
+        /// </summary>
+        private static void CheckAdmob()
+        {
+            var admobDlls = AssetDatabase.FindAssets("GoogleMobileAds t:DefaultAsset").Select(AssetDatabase.GUIDToAssetPath)
+                .Where(p => p.EndsWith("/GoogleMobileAds.dll")).ToList();
+            bool hasAdmob = admobDlls.Count > 0
+                            || AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "GoogleMobileAds");
+            SetSymbol(AdmobSymbol, hasAdmob, hasAdmob ? "AdMob SDK found" : "no AdMob SDK in the project");
+
+            // the old .unitypackage import next to the package: two GoogleMobileAds.dll, the project does not compile
+            if (admobDlls.Any(p => p.StartsWith("Assets/")) && admobDlls.Any(p => p.StartsWith("Packages/")))
+                Debug.LogError("[Base] AdMob is in the project twice: the package and the old Assets/GoogleMobileAds import. " +
+                               "Remove the old one in Base > Hub > Setup > Old installs.");
+            if (hasAdmob || SessionState.GetBool(AdmobAskKey, false))
+                return;
+            SessionState.SetBool(AdmobAskKey, true);
+            Debug.LogError($"[Base] The AdMob SDK ({AdmobPackage}) is missing: Base and its native ads (AdZative) need it.");
+            if (EditorUtility.DisplayDialog("Base needs AdMob",
+                    "Base's ads and native ads (AdZative) run on the Google Mobile Ads SDK, and this project has none.\n\n" +
+                    $"Install adds Google Mobile Ads {AdmobTested} (the version Base is tested with) from OpenUPM.",
+                    "Install AdMob", "Later"))
+                UnityEditor.PackageManager.Client.Add($"{AdmobPackage}@{AdmobTested}");
+        }
+
+        /// <summary>Adds (on) or removes (off) a scripting symbol for the active platform and Android / iOS / Standalone.</summary>
+        private static void SetSymbol(string symbol, bool on, string reason)
         {
             var groups = new[] { EditorUserBuildSettings.selectedBuildTargetGroup, BuildTargetGroup.Android, BuildTargetGroup.iOS, BuildTargetGroup.Standalone }.Distinct();
             foreach (var group in groups)
@@ -194,10 +264,11 @@ namespace Base.Bootstrap
                 var target = NamedBuildTarget.FromBuildTargetGroup(group);
                 string defines = PlayerSettings.GetScriptingDefineSymbols(target);
                 var list = defines.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
-                if (list.Contains(Symbol)) continue;
-                list.Add(Symbol);
+                if (list.Contains(symbol) == on) continue;
+                if (on) list.Add(symbol);
+                else list.Remove(symbol);
                 PlayerSettings.SetScriptingDefineSymbols(target, string.Join(";", list));
-                Debug.Log($"[Base] {Symbol} added to the {group} scripting symbols (Base turns on with DOTween).");
+                Debug.Log($"[Base] {symbol} {(on ? "added to" : "removed from")} the {group} scripting symbols ({reason}).");
             }
         }
 

@@ -115,7 +115,7 @@ namespace Base.Ads
                 }
             }
 #else
-            Debug.LogError("Set Symbol USE_ADMOB in Player Settings");
+            Debug.LogError("AdMob SDK missing (no USE_ADMOB): install AdMob in Base > Hub > Setup > SDKs.");
             onInitDone?.Invoke(IsInitialized);
 #endif
         }

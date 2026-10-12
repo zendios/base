@@ -9,7 +9,7 @@ ATT, Taichi, in-app review / update, splash, debug tools), **IAP** (IAPManager, 
 Required SDKs: TextMeshPro, uGUI, Input System, AdMob (`com.google.ads.mobile`, OpenUPM), DOTween (free) or DOTween Pro in Assets/Plugins/Demigiant (no ASMDEF needed).
 Optional SDKs switch their part on when installed and off when missing, without compile errors:
 Unity IAP (`USE_IN_APP_PURCHASE`), Firebase (`USE_FIREBASE`), AppsFlyer (`USE_APPSFLYER`), Play Review
-(`USE_IN_APP_REVIEW`), Play App Update (`USE_IN_APP_UPDATE`). Do not add these symbols to Player Settings.
+(`USE_IN_APP_REVIEW`), Play App Update (`USE_IN_APP_UPDATE`). Do not add these symbols by hand: Base sets them (USE_ADMOB also in Player Settings while the AdMob SDK is there, like USE_ADZATIVE).
 Inside the package the parts still talk through `ZenAnalytics`, `ZenRemote`, `ZenStore` and `ZenToast`, so a missing
 SDK only turns its calls into no-ops.
 
