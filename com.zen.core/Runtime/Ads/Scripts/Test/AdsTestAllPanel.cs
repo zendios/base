@@ -371,7 +371,6 @@ public class AdsTestAllPanel : MonoBehaviour
         });
         AddButton(() => $"Test IDs: {(Config.useIdTest ? "ON" : "OFF")}", () => Config.useIdTest = !Config.useIdTest);
         AddButton(() => "Ad Inspector", AdsManager.OpenAdInspector);
-        AddButton(() => $"VIP: {(User.isVIP ? "ON" : "OFF")}", () => User.isVIP = !User.isVIP);
         AddButton(() => $"Remove Ads: {(User.isRemovedAds ? "ON" : "OFF")}", () => User.isRemovedAds = !User.isRemovedAds);
 
         content.anchoredPosition = Vector2.zero;
@@ -502,7 +501,7 @@ public class AdsTestAllPanel : MonoBehaviour
     private static void Fit(TMP_Text text)
     {
         if (text == null) return;
-        text.enableWordWrapping = false;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
         text.fontSizeMax = text.fontSize;
         text.fontSizeMin = 10;
         text.enableAutoSizing = true;
@@ -545,7 +544,7 @@ public class AdsTestAllPanel : MonoBehaviour
         t.fontSize = size;
         t.color = color;
         t.alignment = align;
-        t.enableWordWrapping = true;
+        t.textWrappingMode = TextWrappingModes.Normal;
         t.overflowMode = TextOverflowModes.Ellipsis;
         t.raycastTarget = false;
         return t;
@@ -624,7 +623,7 @@ public class AdsTestAllPanel : MonoBehaviour
     private static List<AdBase> AllPlacements()
     {
         var list = new List<AdBase>(AdsManager.Placements.Values.Where(a => a != null));
-        foreach (var a in FindObjectsByType<AdBase>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID))
+        foreach (var a in FindObjectsByType<AdBase>(FindObjectsInactive.Include))
             if (!list.Contains(a)) list.Add(a);
         return list.OrderBy(a => a.placement.ToString()).ToList();
     }

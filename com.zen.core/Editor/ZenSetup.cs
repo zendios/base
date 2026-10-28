@@ -108,7 +108,7 @@ namespace Base.Setup
 
         private void Refresh()
         {
-            listRequest = Client.List(true);
+            listRequest = Client.List(true, true);   // + indirect: AdMob and EDM4U come in as dependencies of Base
             EditorApplication.update -= Poll;
             EditorApplication.update += Poll;
             legacy = BaseSdks.Legacy();

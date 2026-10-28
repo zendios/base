@@ -1,3 +1,4 @@
+using Base.Tools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -278,8 +279,9 @@ namespace Base.Setup
 
         /// <summary>
         /// Test build of the packages, without git: copies com.zen.core (version "x.y.z-test.yyyyMMddHHmm", from the New
-        /// version field) and com.zen.plugins.adzative to a temp folder and packs them with Client.Pack into
-        /// Builds/packages (ignored by git). A game installs them with file: entries in manifest.json.
+        /// version field) and com.zen.plugins.adzative to a temp folder and packs them with tar into
+        /// Builds/packages (ignored by git), as UPM tarballs (package/ at the root). A game installs them with file:
+        /// entries in manifest.json. Not Client.Pack: on Unity 6000.4 it needs a Unity organization ID to sign.
         /// </summary>
         private void ExportTest()
         {
@@ -295,23 +297,17 @@ namespace Base.Setup
                 foreach (var name in new[] { "com.zen.core", "com.zen.plugins.adzative" })
                 {
                     string src = Path.GetFullPath($"Packages/{name}");
-                    string tmp = Path.Combine(Path.GetTempPath(), "base-pack-" + Guid.NewGuid().ToString("N"), name);
+                    string tmp = Path.Combine(Path.GetTempPath(), "base-pack-" + Guid.NewGuid().ToString("N"), "package");
                     Copy(src, tmp);
+                    string json = Path.Combine(tmp, "package.json");
                     if (name == "com.zen.core")
-                    {
-                        string json = Path.Combine(tmp, "package.json");
                         File.WriteAllText(json, Regex.Replace(File.ReadAllText(json), "(\"version\"\\s*:\\s*\")[^\"]+\"", "${1}" + testVersion + "\"", RegexOptions.None, TimeSpan.FromSeconds(1)));
-                    }
-                    var req = Client.Pack(tmp, output);
-                    while (!req.IsCompleted)
-                    {
-                        EditorUtility.DisplayProgressBar("Export test package", name, 0.5f);
-                        System.Threading.Thread.Sleep(50);
-                    }
-                    if (req.Status != StatusCode.Success)
-                        throw new Exception($"{name}: {req.Error?.message}");
-                    files.Add(req.Result.tarballPath);
-                    lock (log) log.AppendLine(req.Result.tarballPath);
+                    string packVersion = Regex.Match(File.ReadAllText(json), "\"version\"\\s*:\\s*\"([^\"]+)\"").Groups[1].Value;
+                    string tarball = Path.Combine(output, $"{name}-{packVersion}.tgz");
+                    EditorUtility.DisplayProgressBar("Export test package", name, 0.5f);
+                    Tar($"-czf \"{tarball}\" -C \"{Path.GetDirectoryName(tmp)}\" package");
+                    files.Add(tarball);
+                    lock (log) log.AppendLine(tarball);
                     try { Directory.Delete(Path.GetDirectoryName(tmp), true); } catch { }
                 }
             }
@@ -333,6 +329,13 @@ namespace Base.Setup
             EditorUtility.RevealInFinder(files.FirstOrDefault() ?? output);
         }
 
+        private static void Tar(string args)
+        {
+            string error = EditorProcess.Run("tar", args, out _);
+            if (error != null)
+                throw new Exception(error);
+        }
+
         /// <summary>
         /// Test build as a .unitypackage (Assets > Import Package > Custom Package): Packages/com.zen.core and
         /// Packages/com.zen.plugins.adzative as they are now, into Builds/packages. Importing it embeds both packages in
@@ -348,7 +351,8 @@ namespace Base.Setup
             lock (log) log.Clear().AppendLine($"> export {Path.GetFileName(file)}");
             try
             {
-                AssetDatabase.ExportPackage(new[] { "Packages/com.zen.core", "Packages/com.zen.plugins.adzative" }, file, ExportPackageOptions.Recurse);
+                UnityEditor.AssetPackage.Package.Export(new UnityEditor.AssetPackage.ExportPackageParameters(
+                    new[] { "Packages/com.zen.core", "Packages/com.zen.plugins.adzative" }, file, null, ExportPackageOptions.Recurse));
             }
             catch (Exception ex)
             {

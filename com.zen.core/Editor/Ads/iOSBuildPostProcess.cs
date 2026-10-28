@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR && UNITY_IOS
+using Base.Tools;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -16,8 +17,8 @@ public static class iOSBuildPostProcess
     // Idempotent signature to prevent redundant injections in 'Append' build mode.
     private const string OptimusHookMark = "# [OPTIMUS_PRO_HOOK]";
 
-    // Separate Podfile logic to run BEFORE EDM4U triggers 'pod install' (usually around order 40-50).
-    [PostProcessBuild(10)]
+    // After EDM writes the Podfile (order 40) and before it runs 'pod install' (order 50).
+    [PostProcessBuild(45)]
     public static void OnPostprocessPodfile(BuildTarget buildTarget, string pathToXcode)
     {
         if (buildTarget != BuildTarget.iOS) return;
@@ -181,40 +182,83 @@ public static class iOSBuildPostProcess
         File.WriteAllText(podfilePath, podfileContent);
     }
 
-    // Hard-syncs MinimumOSVersion for all embedded frameworks to obliterate ITMS-90208
+    // Lowers the MinimumOSVersion of embedded frameworks that ask for more than the app (ITMS-90208)
     private static void SynchronizeFrameworksPLists(string buildPath, string targetOSVersion)
     {
-        try
+        // Recursively locate all Info.plist files inside the Xcode project
+        string[] plistFiles = Directory.GetFiles(buildPath, "Info.plist", SearchOption.AllDirectories);
+
+        foreach (string plistPath in plistFiles)
         {
-            // Recursively locate all Info.plist files inside the Xcode project
-            string[] plistFiles = Directory.GetFiles(buildPath, "Info.plist", SearchOption.AllDirectories);
-            
-            foreach (string plistPath in plistFiles)
+            // We only care about Info.plist files residing within a .framework bundle
+            if (!plistPath.Contains(".framework"))
+                continue;
+
+            // One unreadable plist must not stop the others.
+            try
             {
-                // We only care about Info.plist files residing within a .framework bundle
-                if (plistPath.Contains(".framework"))
+                // PlistDocument reads XML only; vendor frameworks often ship binary plists.
+                string xml;
+                if (IsBinaryPlist(plistPath))
                 {
-                    PlistDocument plist = new PlistDocument();
-                    plist.ReadFromFile(plistPath);
-                    
-                    // If the framework specifies a MinimumOSVersion, enforce our target OS version
-                    if (plist.root.values.ContainsKey("MinimumOSVersion"))
+                    string error = BinaryPlistToXml(plistPath, out xml);
+                    if (error != null)
                     {
-                        string currentVersion = plist.root.values["MinimumOSVersion"].AsString();
-                        if (currentVersion != targetOSVersion)
-                        {
-                            plist.root.SetString("MinimumOSVersion", targetOSVersion);
-                            plist.WriteToFile(plistPath);
-                            Debug.Log($"[OptimusPro] Hard-synced MinimumOSVersion ({currentVersion} -> {targetOSVersion}) for framework: {plistPath}");
-                        }
+                        Debug.LogWarning($"[iOSBuildPostProcess] Binary plist left as is ({error}): {plistPath}");
+                        continue;
+                    }
+                }
+                else
+                {
+                    xml = File.ReadAllText(plistPath);
+                }
+
+                PlistDocument plist = new PlistDocument();
+                plist.ReadFromString(xml);
+
+                // If the framework specifies a MinimumOSVersion, enforce our target OS version
+                if (plist.root.values.ContainsKey("MinimumOSVersion"))
+                {
+                    // Only a framework asking for a newer iOS than the app fails validation (ITMS-90208); a lower or
+                    // unreadable one stays untouched (signed vendor bundles, some not even writable from Unity).
+                    string currentVersion = plist.root.values["MinimumOSVersion"].AsString();
+                    bool newer = IosVersion.TryParse(currentVersion, out var current)
+                        && IosVersion.TryParse(targetOSVersion, out var target) && current > target;
+                    if (newer)
+                    {
+                        plist.root.SetString("MinimumOSVersion", targetOSVersion);
+                        plist.WriteToFile(plistPath);
+                        Debug.Log($"[OptimusPro] Hard-synced MinimumOSVersion ({currentVersion} -> {targetOSVersion}) for framework: {plistPath}");
                     }
                 }
             }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[iOSBuildPostProcess] Error synchronizing {plistPath}: {e.Message}");
+            }
         }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"[iOSBuildPostProcess] Error synchronizing framework PLists: {e.Message}");
-        }
+    }
+
+    private static bool IsBinaryPlist(string path)
+    {
+        var header = new byte[6];
+        using (var stream = File.OpenRead(path))
+            return stream.Read(header, 0, header.Length) == header.Length && System.Text.Encoding.ASCII.GetString(header) == "bplist";
+    }
+
+    /// <summary>
+    /// A binary plist as XML text, read through plutil's stdout: plutil cannot save inside a .framework folder when
+    /// Unity starts it (macOS refuses), while overwriting the file afterwards works. Null when done, else why not.
+    /// </summary>
+    private static string BinaryPlistToXml(string path, out string xml)
+    {
+        xml = null;
+        if (Application.platform != RuntimePlatform.OSXEditor)
+            return "plutil needs macOS";
+        string error = EditorProcess.Run("/usr/bin/plutil", $"-convert xml1 -o - \"{path}\"", out string output);
+        if (error == null)
+            xml = output;
+        return error;
     }
 }
 #endif

@@ -55,17 +55,19 @@ Kiểm tra tài liệu dự án (AGENTS.md, CLAUDE.md): nếu dự án đã ch�
 ## 2. Quy trình làm việc
 
 1. **Đọc bối cảnh**: phiên bản Unity (`ProjectSettings/ProjectVersion.txt`), render pipeline, `Packages/manifest.json`, quy ước riêng của dự án, và những chỗ code nạp asset theo chuỗi (`Resources.Load`, `Resources.LoadAll`, Addressables address). Ghi lại các thư mục bị nạp theo đường dẫn: **không đổi tên/di chuyển chúng** nếu chưa sửa code.
-2. **Audit (chỉ đọc)**: viết một Editor script quét `AssetDatabase.GetAllAssetPaths()` (bỏ `Plugins/`, `Editor/`, `TextMesh Pro/`, package) và xuất CSV vào `Logs/Zpas/`:
+2. **Audit (chỉ đọc)**: chạy `Base.Tools.ZpasAudit.Run` (`-zpasRoot` để giới hạn) – quét `AssetDatabase.GetAllAssetPaths()` (bỏ `Plugins/`, `Editor/`, SDK bên thứ ba) và xuất `Logs/Zpas/audit.csv` + `summary.txt`:
    - naming: casing theo vai trò, từ cấm, `__`, số 2 chữ số, thiếu type infix;
    - texture: kích thước, POT, Read/Write, mipmap, sRGB, định dạng Android/iOS;
    - audio: độ dài clip, Load Type; mesh: Read/Write.
    Báo cáo cho người dùng bằng con số (bao nhiêu vi phạm theo loại), không liệt kê hết.
-3. **Pipeline cho asset mới** (an toàn nhất, làm trước): `AssetPostprocessor` chỉ tác động lên `Assets/Production/**` (không reimport art cũ), dùng `OnPostprocessAllAssets` + `SaveAndReimport` có chặn vòng lặp; đặt thông số theo infix/hậu tố ở mục 1. Kèm `NamingValidator` có menu và hàm CLI `ValidateCli` thoát mã 1 khi có vi phạm để làm CI gate.
+3. **Pipeline cho asset mới** (an toàn nhất, làm trước): `AssetPostprocessor` chỉ tác động lên `Assets/Production/**` (không reimport art cũ), dùng `OnPostprocessAllAssets` + `SaveAndReimport` có chặn vòng lặp; đặt thông số theo infix/hậu tố ở mục 1 (viết trong game). CI gate đặt tên: `Base.Tools.RenameAssetWindow.ValidateCli` (thoát mã 1 khi còn tên sai, `Logs/Zpas/naming.csv`); menu là Base > Rename Assets.
 4. **Tối ưu asset cũ không đổi tên** (an toàn, lợi ngay): áp thông số import của mục 1 cho texture/audio/mesh hiện có. Chỉ tắt Read/Write sau khi grep code không có `GetPixel(s)/SetPixel(s)/ReadPixels/GetRawTextureData` (texture) hoặc `.vertices/.triangles` trên mesh import. Ghi CSV trước/sau.
 5. **Đổi tên / di chuyển theo ZPAS** (rủi ro, cần người dùng duyệt):
    - Luôn dùng `AssetDatabase.RenameAsset` / `MoveAsset` để giữ GUID; không đổi tên bằng hệ thống file.
    - Asset nạp theo chuỗi: sửa code và dữ liệu (level, JSON, ScriptableObject) cùng lúc, hoặc chuyển sang Addressables với address = đường dẫn cũ.
    - Làm theo từng Parent, commit riêng, build thử sau mỗi đợt.
+   - Thư mục theo loại (`Texture2D/`, `AudioClip/`...) → cây ZPAS: `Base.Tools.ZpasReorganize.Run [-zpasFeatures Menu=Main,...]` (kế hoạch CSV), thêm `-zpasApply` để chuyển.
+   - Đổi tên hàng loạt: `Base.Tools.RenameAssetWindow.RenameCli` (chạy thử, CSV), thêm `-zpasApply` chỉ đổi dòng có gợi ý đạt và tên cũ không nằm trong `.cs`.
    - Nếu dự án sắp làm lại art (remaster), chỉ làm bước 3-4 và để đổi tên cho art mới.
 6. **Kiểm chứng**: compile headless, chạy lại audit, build APK/AAB và so kích thước + RAM trước/sau. Báo số liệu thật, nói rõ phần chưa kiểm tra trên thiết bị.
 

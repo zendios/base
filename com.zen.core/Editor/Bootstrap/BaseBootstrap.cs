@@ -143,7 +143,7 @@ namespace Base.Bootstrap
                 Debug.Log($"[Base] importing {Path.GetFileName(package)} from {url}");
                 AssetDatabase.importPackageCompleted -= OnImported;
                 AssetDatabase.importPackageCompleted += OnImported;
-                AssetDatabase.ImportPackage(package, false);
+                UnityEditor.AssetPackage.Package.Import(package, false);
             }
             catch (Exception ex)
             {
@@ -222,7 +222,7 @@ namespace Base.Bootstrap
 
         private const string AdmobSymbol = "USE_ADMOB";
         private const string AdmobPackage = "com.google.ads.mobile";
-        private const string AdmobTested = "11.5.0";   // the version in Base > Hub > Setup > SDKs and in both package.json
+        private const string AdmobTested = "11.6.0";   // the version in Base > Hub > Setup > SDKs and in both package.json
         private const string AdmobAskKey = "Base.Bootstrap.AskAdmob";
 
         /// <summary>

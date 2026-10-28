@@ -22,7 +22,7 @@ namespace Base.Ads
         [SerializeField] private int timeAutoReload = 20;
         [SerializeField] private bool reloadOnClick = true;
 
-#if UNITY_IOS
+#if UNITY_IOS && !UNITY_EDITOR
 		[DllImport("__Internal")] private static extern float GetScreenScale();
 		[DllImport("__Internal")] private static extern float GetScreenNativeScale();
 		[DllImport("__Internal")] private static extern bool GetIsDownsampling();
@@ -35,7 +35,7 @@ namespace Base.Ads
             {
                 if (_screenScale == 0)
                 {
-#if UNITY_IOS
+#if UNITY_IOS && !UNITY_EDITOR
 
 					bool isDownsampling = GetIsDownsampling();
 					float _screenNativeScale = GetScreenNativeScale();

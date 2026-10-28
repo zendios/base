@@ -45,6 +45,7 @@ ui_ads_star_rating_spr.png          sfx_ui_click.wav (one click sound: no number
 - Do not repeat the type: no `animation` in an `_ani` name, no `material` in a `_mat` name (`FillFXAnimation` -> `ads_fill_fx_ani`).
 - A lead word (`icon`, `btn`, `button`, `bg`, `bar`, `toggle`) is a part on its own: `icon_remove_ads` -> `ui_ads_icon_spr_remove_ads`.
 - Rename with **Base > Rename Assets**: it checks these rules, suggests a name, and flags names still used in code.
+  The same rules run headless (section 6): `Base.Tools.RenameAssetWindow.ValidateCli` and `.RenameCli`.
 
 **Forbidden words** (compared word by word, split on `_` and on capitals): `final`, `new`, `temp`, `demo`,
 `abc`, `fix`, `backup`, `old`, `copy`, `latest`, `fix_final`. (`golden` does not break `old`.)
@@ -75,6 +76,9 @@ Assets/
 If the project's own docs (`AGENTS.md`, `CLAUDE.md`) already fix the root name (`Production/Art` or `_Production/Arts`),
 the project wins.
 
+An old project with type folders (`Texture2D/`, `AudioClip/`, `Images/`...) moves to this tree with
+`Base.Tools.ZpasReorganize.Run` (section 6, step 5): the Parent of an asset is the scene (or `Resources`) that uses it.
+
 **Assets loaded by name** must keep their name and folder, or the code changes with them:
 `Resources/ZenAdIds`, `Resources/AdConfig`, `Resources/ZenIapSettings`, `Resources/DOTweenSettings`, and every popup
 or screen loaded by `UIPopupBase<T>` / `UIManager.LoadScreen<T>()`: `Resources/<ClassName>.prefab`.
@@ -97,9 +101,14 @@ or screen loaded by `UIPopupBase<T>` / `UIManager.LoadScreen<T>()`: `Resources/<
 | Texture `_normal` | Normal Map, sRGB off |
 | Texture `_orm` | sRGB off; R = AO, G = Roughness, B = Metallic |
 | Every texture | ASTC on Android / iOS, power-of-two size, mipmaps off by default, Read/Write off |
+| Texture shown much smaller than its size (3D at a distance, a far background scaled down) | mipmaps on: without them it shimmers |
 | Mesh | Read/Write off (unless code reads vertices or a MeshCollider needs it), compression Medium / High |
 | Audio `_sfx_` | Decompress On Load |
 | Audio `_bgm_` | Streaming or Compressed In Memory |
+
+ASTC: a texture without an Android override already gets ASTC when Player Settings > Android > Texture Compression is
+ASTC (Unity 6's default); an override only changes the block size. Measure the APK before and after: on a 2D game
+(Stickman remaster) forcing ASTC 6x6 on 96 such textures saved 0.3% of the APK and no RAM.
 
 Localization: `Production/Shared/Localization/loc_text_<lang>.csv`, voice `loc_voice_<char>_<line>_<lang>`.
 Documents: `PROJECT_DocType_Topic_vVersion_Language` (`ZPAS_Manual_v2.3_VN.pdf`).
@@ -109,13 +118,14 @@ Documents: `PROJECT_DocType_Topic_vVersion_Language` (`ZPAS_Manual_v2.3_VN.pdf`)
 1. **Read the context first**: Unity version (`ProjectSettings/ProjectVersion.txt`), render pipeline,
    `Packages/manifest.json`, the project's own conventions, and every place that loads assets by string
    (`Resources.Load`, `Resources.LoadAll`, Addressables). Never rename or move those without changing the code.
-2. **Audit (read-only)**: an Editor script over `AssetDatabase.GetAllAssetPaths()` (skipping `Plugins/`, `Editor/`,
-   `TextMesh Pro/` and packages) writes a CSV to `Logs/Zpas/`: casing by role, forbidden words, `__`, two-digit numbers,
-   missing type infix; texture size / POT / Read-Write / mipmaps / sRGB / platform format; audio length and load type;
-   mesh Read/Write. Report counts per category, not the whole list.
-3. **Pipeline for new assets** (safest, do it first): an `AssetPostprocessor` limited to `Assets/Production/**`
-   (`OnPostprocessAllAssets` + `SaveAndReimport` with a re-entry guard) that applies section 5 from the infix / suffix,
-   plus a `NamingValidator` with a menu item and a CLI entry (`ValidateCli`, exit code 1 on violations) as a CI gate.
+2. **Audit (read-only)**: `Base.Tools.ZpasAudit.Run` (`-zpasRoot` to limit it) writes `Logs/Zpas/audit.csv` and
+   `summary.txt`: names with the Rename Assets rules, folder casing; texture POT / Read-Write / sprite mipmaps / Android
+   format (automatic counts as ASTC when it is) / data-map sRGB; audio load type by length; mesh Read/Write. Plugins,
+   Editor and third-party SDK folders are skipped. Report counts per category, not the whole list.
+3. **Pipeline for new assets** (safest, do it first): an `AssetPostprocessor` in the game limited to
+   `Assets/Production/**` that applies section 5 to new assets (`assetImporter.importSettingsMissing`), and the naming
+   gate for CI: `Base.Tools.RenameAssetWindow.ValidateCli` (`Logs/Zpas/naming.csv`, exit code 1 while names fail; the
+   menu item is Base > Rename Assets).
 4. **Optimize old assets without renaming**: apply section 5 to existing textures / audio / meshes. Turn Read/Write off
    only after grepping the code for `GetPixel(s)` / `SetPixel(s)` / `ReadPixels` / `GetRawTextureData` (textures) and
    `.vertices` / `.triangles` on imported meshes. Keep a before / after CSV.
@@ -123,6 +133,12 @@ Documents: `PROJECT_DocType_Topic_vVersion_Language` (`ZPAS_Manual_v2.3_VN.pdf`)
    stay; never rename on the file system. Assets loaded by string: change code and data in the same commit, or move to
    Addressables with the old path as the address. One Parent per commit, build after each batch. If a remaster is
    coming, do steps 3-4 only and leave renaming for the new art.
+   - Folders: `Base.Tools.ZpasReorganize.Run [-zpasFeatures Menu=Main,Game=Gameplay] [-zpasResourcesFeature Gameplay]`
+     writes the plan (`Logs/Zpas/reorganize.csv`); the same call with `-zpasApply` moves the assets and re-points
+     Build Settings. Fix scene paths written in Editor tools in the same commit.
+   - Names: `Base.Tools.RenameAssetWindow.RenameCli [-zpasRoot <folder>]` writes `Logs/Zpas/rename.csv` (suggestion,
+     its check, names still in code); with `-zpasApply` it renames only rows whose suggestion passes and whose old name
+     is in no `.cs` file. The rest is done in the window.
 6. **Verify**: headless compile, audit again, build the APK / AAB and compare size + RAM before / after. Report real
    numbers and say what was not checked on a device.
 

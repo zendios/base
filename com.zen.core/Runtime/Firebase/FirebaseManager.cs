@@ -172,6 +172,11 @@ namespace Base
                     AnalyticStatus = FirebaseStatus.UnkownError;
                 }
 
+                // No Firebase app (missing or wrong GoogleService-Info.plist / google-services.json): every other
+                // Firebase call throws and would end the caller's coroutine (AdSplash would stop there).
+                if (AnalyticStatus != FirebaseStatus.Initialized)
+                    yield break;
+
                 FirebaseAnalytics.GetSessionIdAsync().ContinueWithOnMainThread(task =>
                 {
                     if (task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
@@ -794,7 +799,7 @@ namespace Base
         /// </summary>
         /// <param name="state">Trạng thái của màn chơi</param>
         /// <param name="level">Level mà user chơi là level bao nhiêu</param>
-        /// <param name="mode">Mode chơi của level là gì</param>
+        /// <param name="mode">Mode chơi của level là gì: enum GameMode của game (Base không có GameMode)</param>
         /// <param name="play_type">User chơi level này trong hoàn cảnh nào</param>
         /// <param name="total_play">User chơi level này lần thứ mấy</param>
         /// <param name="total_lose">User đã thua level này mấy lần (trước khi bắt đầu lần chơi này)</param>
@@ -805,7 +810,7 @@ namespace Base
         /// <param name="player_rank">Hạng của người chơi như số sao 0,1,2,3</param>
         /// <param name="lose_by">Lý do thua (trong trường hợp user thua)</param>
         /// <param name="action_seq">Chuỗi hành động mà user thực hiện trong level - "GD gán alias cho mỗi action là 1, 2, 3, 4, 5,... => Dev log sequence theo thứ tự thực hiện action của user (lưu ý: trong chuỗi không có dầu cách sau dấu phẩy)"</param>
-        public static void LogLevel(GameState state, int level, GameMode mode, PlayType play_type,
+        public static void LogLevel(GameState state, int level, Enum mode, PlayType play_type,
                                         int total_play, int total_lose,
                                         float duration_play = 0, int item_cleared = 0,
                                         float duration_total = 0, int item_total = 0,
@@ -845,13 +850,13 @@ namespace Base
 
 #if USE_FIREBASE
         /// <param name="level">Level mà user chơi là level bao nhiêu</param>
-        /// <param name="mode">Mode chơi của level là gì</param>
+        /// <param name="mode">Mode chơi của level là gì: enum GameMode của game (Base không có GameMode)</param>
         /// <param name="play_type">User chơi level này trong hoàn cảnh nào</param>
         /// <param name="play_index">User chơi level này lần thứ mấy</param>
         /// <param name="lose_index">User đã thua level này mấy lần (trước khi bắt đầu lần chơi này)</param>
         /// <param name="duration_total">Tổng số thời gian cho phép hoàn thành level</param>
         /// <param name="item_total">Tổng số item cần xử lý trong level</param>
-        protected static Parameter[] levelParameter(long level, GameMode mode, PlayType play_type,
+        protected static Parameter[] levelParameter(long level, Enum mode, PlayType play_type,
                                                     long play_index, long lose_index,
                                                     float duration_total, long item_total)
         {

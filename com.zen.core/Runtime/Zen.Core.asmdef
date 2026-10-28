@@ -8,6 +8,7 @@
         "Unity.InputSystem",
         "AdZative",
         "AppsFlyer",
+        "Unity.Advertisement.IosSupport",
         "Google.Play.Common",
         "Google.Play.Core",
         "Google.Play.AppUpdate",
@@ -38,8 +39,13 @@
         },
         {
             "name": "appsflyer-unity-plugin",
-            "expression": "",
+            "expression": "7.0.0",
             "define": "USE_APPSFLYER"
+        },
+        {
+            "name": "appsflyer-unity-plugin",
+            "expression": "(,7.0.0)",
+            "define": "APPSFLYER_TOO_OLD"
         },
         {
             "name": "com.zen.plugins.adzative",

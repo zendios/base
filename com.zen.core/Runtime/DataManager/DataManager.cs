@@ -130,6 +130,19 @@ public class DataManager : DataManagerBase
     public static UserData UserData { get; set; }
     //public static CharacterDatas CharacterDatas = null;
 
+    private static readonly List<ISaveSection> _sections = new List<ISaveSection>();
+
+    /// <summary>
+    /// Raised once, during load, when the save file was written by an older Base with BinaryFormatter.
+    /// The argument is that save as JSON with the old field names (LegacySaveReader). Base has already copied
+    /// userData and the old file is kept next to it as .gd.legacy; fill the game's own data from the JSON here
+    /// (GameData.SetItems, GameData.SetSection or the registered sections directly).
+    /// </summary>
+    public static event Action<string> OnLegacySaveLoaded;
+
+    /// <summary>True when this session's data came from an older BinaryFormatter save.</summary>
+    public static bool IsLegacySaveMigrated { get; private set; }
+
     public delegate void LoadedDelegate();
     public static event LoadedDelegate OnLoaded;
     [Space(10)]
@@ -150,6 +163,43 @@ public class DataManager : DataManagerBase
         UserData = null;
         IsLoaded = false;
         OnLoaded = null;
+        _sections.Clear();
+        OnLegacySaveLoaded = null;
+        IsLegacySaveMigrated = false;
+    }
+
+    /// <summary>
+    /// Saves the game's own data in Base's save file (see ISaveSection). Register before the save loads;
+    /// a section registered after loading is filled at once from the loaded save.
+    /// </summary>
+    public static void RegisterSection(ISaveSection section)
+    {
+        if (section == null || _sections.Contains(section))
+            return;
+        if (_sections.Any(x => x.SaveKey == section.SaveKey))
+        {
+            Debug.LogError("DataManager: save section key already registered: " + section.SaveKey);
+            return;
+        }
+
+        _sections.Add(section);
+        if (IsLoaded)
+            ApplySection(section);
+    }
+
+    private static void ApplySection(ISaveSection section)
+    {
+        var json = GameData?.GetSection(section.SaveKey);
+        if (json == null)
+            return;
+        try
+        {
+            section.FromJson(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+        }
     }
 
 #if UNITY_EDITOR
@@ -218,6 +268,10 @@ public class DataManager : DataManagerBase
         UserData = new UserData();
 
         var data = LoadJson<GameData>(DebugMode.IsOn);
+        string legacyJson = null;
+        if (data == null && SaveFileExists())
+            data = LoadUnreadableSave(out legacyJson);
+
         if (data is GameData saveData)
         {
             GameData = saveData;
@@ -228,9 +282,14 @@ public class DataManager : DataManagerBase
             else
                 GameData.userData = UserData;
 
+            if (legacyJson != null)
+                RaiseLegacySaveLoaded(legacyJson);
+
             GameData.MoveLegacyItems(ItemDatas);
             foreach (var datas in ItemDatas)
                 datas.UpdateFromSaveData(GameData.GetItems(datas.name));
+            foreach (var section in _sections)
+                ApplySection(section);
         }
 
         if (UserData.versionCurrent == 0)
@@ -246,9 +305,103 @@ public class DataManager : DataManagerBase
         UserData.Init();
 
         IsLoaded = true;
+        // Write the migrated data as JSON at once: the old file is already kept as .gd.legacy.
+        if (IsLegacySaveMigrated)
+            Save(false);
         OnLoaded?.Invoke();
         onLoadCompleted?.Invoke();
         yield return null;
+    }
+
+    // Same path as FileData (Base.dll): persistentDataPath/<SAVEFILE>.gd, or the .tmp left by an interrupted save.
+    private static string SaveFilePath => System.IO.Path.Combine(Application.persistentDataPath, SAVEFILE + ".gd");
+
+    private static bool SaveFileExists()
+    {
+        var path = SaveFilePath;
+        return System.IO.File.Exists(path) || System.IO.File.Exists(path + ".tmp");
+    }
+
+    /// <summary>
+    /// The save file exists but is not this Base's JSON. An older Base's BinaryFormatter save is converted
+    /// (userData copied, the JSON kept for OnLegacySaveLoaded); anything else is only backed up. Either way the
+    /// original file is copied aside first, so the next save can never destroy the player's data.
+    /// </summary>
+    private GameData LoadUnreadableSave(out string legacyJson)
+    {
+        legacyJson = null;
+        var path = SaveFilePath;
+        if (!System.IO.File.Exists(path))
+            path += ".tmp";
+
+        byte[] bytes;
+        try
+        {
+            bytes = System.IO.File.ReadAllBytes(path);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+            return null;
+        }
+
+        if (!LegacySaveReader.TryReadJson(bytes, out var json, out var error))
+        {
+            var backup = BackupSaveFile(path, ".unreadable");
+            Debug.LogError($"DataManager: save file unreadable ({error}), kept as {backup}");
+            ZenAnalytics.LogEvent("save_unreadable", new Dictionary<string, object> { { "error", error } });
+            return null;
+        }
+
+        BackupSaveFile(path, ".legacy");
+        var data = new GameData();
+        try
+        {
+            JsonUtility.FromJsonOverwrite(json, data);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+            ZenAnalytics.LogEvent("save_legacy_failed", new Dictionary<string, object> { { "error", ex.Message } });
+            return null;
+        }
+
+        legacyJson = json;
+        IsLegacySaveMigrated = true;
+        Debug.Log("DataManager: older BinaryFormatter save converted to JSON");
+        return data;
+    }
+
+    private static void RaiseLegacySaveLoaded(string json)
+    {
+        var result = "ok";
+        try
+        {
+            OnLegacySaveLoaded?.Invoke(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+            result = ex.GetType().Name;
+        }
+        ZenAnalytics.LogEvent("save_legacy_migrated", new Dictionary<string, object> { { "result", result } });
+    }
+
+    // Copies the file to <file><suffix>; an earlier backup with that name is never overwritten.
+    private static string BackupSaveFile(string path, string suffix)
+    {
+        var backup = path + suffix;
+        if (System.IO.File.Exists(backup))
+            backup += "-" + DateTime.UtcNow.Ticks;
+        try
+        {
+            System.IO.File.Copy(path, backup);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+        }
+        return backup;
     }
 
     /// <summary>
@@ -281,6 +434,8 @@ public class DataManager : DataManagerBase
 
         foreach (var datas in ItemDatas)
             GameData.SetItems(datas.name, datas.saveList);
+        foreach (var section in _sections)
+            GameData.SetSection(section.SaveKey, section.ToJson());
 
         if (async)
         {
@@ -361,7 +516,22 @@ public class GameData
     public List<ItemData> boosterDatas = new List<ItemData>();
     public List<ItemData> outfitDatas = new List<ItemData>();
 
+    /// <summary>The game's own data (ISaveSection), as JSON by key.</summary>
+    public List<SectionSave> sections = new List<SectionSave>();
+
     public List<ItemData> GetItems(string key) => itemDatas.FirstOrDefault(x => x.key == key)?.items;
+
+    /// <summary>The JSON saved under key by an ISaveSection, or null.</summary>
+    public string GetSection(string key) => sections?.FirstOrDefault(x => x.key == key)?.json;
+
+    public void SetSection(string key, string json)
+    {
+        sections ??= new List<SectionSave>();
+        var save = sections.FirstOrDefault(x => x.key == key);
+        if (save == null)
+            sections.Add(save = new SectionSave { key = key });
+        save.json = json;
+    }
 
     public void SetItems(string key, List<ItemData> items)
     {
@@ -392,4 +562,11 @@ public class ItemDatasSave
 {
     public string key;
     public List<ItemData> items = new List<ItemData>();
+}
+
+[Serializable]
+public class SectionSave
+{
+    public string key;
+    public string json;
 }

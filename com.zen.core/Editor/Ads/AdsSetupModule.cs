@@ -14,6 +14,10 @@ namespace Base.Ads
 
         public IEnumerable<ZenSetupIssue> Check()
         {
+            var nextGenIssue = CheckGmaNextGen();
+            if (nextGenIssue != null)
+                yield return nextGenIssue;
+
             if (ZenSetupUtil.FindResource<AdConfig>(AdConfig.ResourcePath) == null)
                 yield return new ZenSetupIssue
                 {
@@ -49,6 +53,38 @@ namespace Base.Ads
                     fixLabel = "Open",
                     fix = () => Selection.activeObject = ids,
                 };
+        }
+
+        // AdZative is built on the GMA Next-Gen SDK. The Google Mobile Ads plugin builds the Standard SDK unless its
+        // settings select Next-Gen; then native ads fail on device (NoClassDefFoundError ...ads.mobile.sdk).
+        private static ZenSetupIssue CheckGmaNextGen()
+        {
+            var settings = AssetDatabase.FindAssets("GoogleMobileAdsSettings t:ScriptableObject").Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>).FirstOrDefault(s => s != null);
+            if (settings == null)
+                return null;
+
+            var so = new SerializedObject(settings);
+            var overrideSdk = so.FindProperty("overrideDefaultGmaAndroidSdk");
+            var selectedSdk = so.FindProperty("selectedGmaAndroidSdk");
+            if (overrideSdk == null || selectedSdk == null || (overrideSdk.boolValue && selectedSdk.intValue == 1))
+                return null;
+
+            return new ZenSetupIssue
+            {
+                title = "Google Mobile Ads builds the Standard Android SDK",
+                message = "AdZative native ads need the GMA Next-Gen Android SDK; with the Standard one they fail on device " +
+                          "(NoClassDefFoundError com.google.android.libraries.ads.mobile.sdk). Fix selects Next-Gen in GoogleMobileAdsSettings.",
+                type = MessageType.Error,
+                fixLabel = "Use Next-Gen",
+                fix = () =>
+                {
+                    overrideSdk.boolValue = true;
+                    selectedSdk.intValue = 1;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    AssetDatabase.SaveAssets();
+                },
+            };
         }
     }
 }

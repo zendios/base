@@ -120,19 +120,21 @@ MonoBehaviour:
   layoutMode: 1
   videoMode: 0
   desiredAspectRatio: 1
-  desiredScaleType: 0
   forceImage: 0
   loadOnStart: 0
   showOnLoaded: 0
   timeAutoReload: 0
   podSize: 2
   timing:
-    imageFirstSec: 10
+    imageFirstSec: 5
     imageNextSec: 5
     closeAfterSec: 5
     videoMaxSec: 30
     podRatio: 2
     showCountdown: 1
+    countdownDimmedSec: 30
+    closeLockedSec: 1
+    dimmedAlpha: 0.4
   uiCamera: {fileID: 0}
   canvas: {fileID: 1592259069533729368}
   placeholder: {fileID: 5328543195123028082}

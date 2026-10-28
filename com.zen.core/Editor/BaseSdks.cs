@@ -25,8 +25,9 @@ namespace Base.Setup
 
     /// <summary>
     /// The SDKs of a Base game, pinned to the versions Base was tested with, from their official sources: Google
-    /// Mobile Ads, its mediation adapters, EDM4U and the Play plugins from OpenUPM (where Google publishes them),
-    /// AppsFlyer from its GitHub repository (tag), Unity IAP from the Unity registry, Firebase from dl.google.com
+    /// Mobile Ads, its mediation adapters and the Play plugins from OpenUPM (where Google publishes them), the External
+    /// Dependency Manager (Unity's EDM, which AdMob 11.6+ uses) and Unity IAP from the Unity registry,
+    /// AppsFlyer from its GitHub repository (tag), Firebase from dl.google.com
     /// (FirebaseInstaller). Base > Hub > Setup installs them, offers the tested version back, and shows newer ones
     /// (checked once per editor session).
     /// </summary>
@@ -34,9 +35,10 @@ namespace Base.Setup
     {
         public static readonly Sdk[] All =
         {
-            new Sdk { id = "com.google.ads.mobile", display = "AdMob", tested = "11.5.0", group = SdkGroup.Required, source = SdkSource.OpenUpm, info = "Google Mobile Ads for Unity." },
-            new Sdk { id = "com.google.external-dependency-manager", display = "EDM4U", tested = "1.2.189", group = SdkGroup.Required, source = SdkSource.OpenUpm, info = "External Dependency Manager: resolves the Android / iOS libraries of the SDKs." },
-            new Sdk { id = "dotween", display = "DOTween", tested = "1.2.825", group = SdkGroup.Required, source = SdkSource.AssetStore, info = "DOTween (free, Asset Store) or DOTween Pro (paid, added by hand) in Assets/Plugins/Demigiant. Not a package: Base cannot install it." },
+            new Sdk { id = "com.google.ads.mobile", display = "AdMob", tested = "11.6.0", group = SdkGroup.Required, source = SdkSource.OpenUpm, info = "Google Mobile Ads for Unity (11.6+ uses Unity's External Dependency Manager)." },
+            new Sdk { id = "com.unity.external-dependency-manager", display = "EDM (Unity)", tested = "2.1.1", group = SdkGroup.Required, source = SdkSource.UnityRegistry, info = "Unity's External Dependency Manager: resolves the Android / iOS libraries of the SDKs. Replaces Google's EDM4U, which becomes a disabled stub (Firebase still finds its dependency)." },
+            new Sdk { id = "com.unity.ads.ios-support", display = "iOS 14 Ad Support", tested = "1.2.0", group = SdkGroup.Required, source = SdkSource.UnityRegistry, info = "App Tracking Transparency prompt (ATTHelper, AppsFlyer): an iOS build of Base does not compile without it." },
+            new Sdk { id = "dotween", display = "DOTween", tested = "1.3.030", group = SdkGroup.Required, source = SdkSource.AssetStore, info = "DOTween (free, Asset Store) or DOTween Pro (paid, added by hand) in Assets/Plugins/Demigiant. Not a package: Base cannot install it." },
 
             new Sdk { id = "com.google.ads.mobile.mediation.metaaudiencenetwork", display = "Meta", tested = "3.20.1", group = SdkGroup.Mediation, source = SdkSource.OpenUpm, defaultOn = true, info = "AdMob mediation adapter: Meta Audience Network." },
             new Sdk { id = "com.google.ads.mobile.mediation.liftoffmonetize", display = "Liftoff", tested = "5.7.9", group = SdkGroup.Mediation, source = SdkSource.OpenUpm, info = "AdMob mediation adapter: Liftoff Monetize (Vungle)." },
@@ -46,10 +48,10 @@ namespace Base.Setup
             new Sdk { id = "com.google.ads.mobile.mediation.mintegral", display = "Mintegral", tested = "2.2.6", group = SdkGroup.Mediation, source = SdkSource.OpenUpm, info = "AdMob mediation adapter: Mintegral." },
             new Sdk { id = "com.google.ads.mobile.mediation.pangle", display = "Pangle", tested = "7.2.1", group = SdkGroup.Mediation, source = SdkSource.OpenUpm, info = "AdMob mediation adapter: Pangle." },
 
-            new Sdk { id = "appsflyer-unity-plugin", display = "AppsFlyer", tested = "6.17.900", group = SdkGroup.Optional, source = SdkSource.AppsFlyerGit, defaultOn = true, info = "Attribution + ad revenue (github.com/AppsFlyerSDK, tag)." },
+            new Sdk { id = "appsflyer-unity-plugin", display = "AppsFlyer", tested = "7.0.3", group = SdkGroup.Optional, source = SdkSource.AppsFlyerGit, defaultOn = true, info = "Attribution + ad revenue (github.com/AppsFlyerSDK, tag)." },
             new Sdk { id = "com.google.play.review", display = "In-App Review", tested = "1.8.4", group = SdkGroup.Optional, source = SdkSource.OpenUpm, defaultOn = true, info = "Google Play in-app review." },
             new Sdk { id = "com.google.play.appupdate", display = "In-App Update", tested = "1.8.5", group = SdkGroup.Optional, source = SdkSource.OpenUpm, defaultOn = true, info = "Google Play in-app update." },
-            new Sdk { id = "com.unity.purchasing", display = "Unity IAP", tested = "5.4.3", group = SdkGroup.Optional, source = SdkSource.UnityRegistry, defaultOn = true, info = "Store, Remove Ads / VIP." },
+            new Sdk { id = "com.unity.purchasing", display = "Unity IAP", tested = "5.4.4", group = SdkGroup.Optional, source = SdkSource.UnityRegistry, defaultOn = true, info = "Store, Remove Ads / VIP." },
             new Sdk { id = "com.google.firebase.app", display = "Firebase", tested = FirebaseInstaller.Pinned, group = SdkGroup.Optional, source = SdkSource.Firebase, defaultOn = true, info = "Analytics, Remote Config, Crashlytics (dl.google.com .tgz)." },
         };
 
@@ -105,7 +107,7 @@ namespace Base.Setup
                 foreach (var s in gitSdks)
                 {
                     string latest = "";
-                    try { latest = LatestTag(GitRepo(s)); }
+                    try { latest = s.source == SdkSource.Firebase ? LatestFirebase() : LatestTag(GitRepo(s)); }
                     catch (Exception ex) { Debug.LogWarning($"[Base Setup] {s.display}: version check failed: {ex.Message}"); }
                     lock (tags) tags[s] = latest;
                 }
@@ -146,10 +148,42 @@ namespace Base.Setup
             : s.source == SdkSource.Firebase ? "https://github.com/firebase/firebase-unity-sdk.git" : null;
 
         /// <summary>Highest x.y.z (or vx.y.z) tag of a repository, without the "v".</summary>
-        private static string LatestTag(string repo) =>
+        private static string LatestTag(string repo) => Tags(repo).FirstOrDefault() ?? "";
+
+        /// <summary>x.y.z (or vx.y.z) tags of a repository, newest first.</summary>
+        private static List<string> Tags(string repo) =>
             ZenUpdateChecker.Git($"ls-remote --tags --refs {repo}").Split('\n')
                 .Select(l => Regex.Match(l, @"refs/tags/v?(\d+\.\d+\.\d+)\s*$")).Where(m => m.Success)
-                .Select(m => m.Groups[1].Value).OrderByDescending(v => new Version(v)).FirstOrDefault() ?? "";
+                .Select(m => m.Groups[1].Value).OrderByDescending(v => new Version(v)).ToList();
+
+        /// <summary>
+        /// Newest Firebase version that can really be installed: a firebase-unity-sdk tag can come before Google puts its
+        /// .tgz on dl.google.com, so the newest tags are checked against the four archives Base installs (app, analytics,
+        /// remote-config, crashlytics). Runs on the background thread of CheckLatest.
+        /// </summary>
+        private static string LatestFirebase()
+        {
+            foreach (var version in Tags(GitRepo(All.First(s => s.source == SdkSource.Firebase))).Take(5))
+                if (FirebaseInstaller.Parts.All(part => UrlExists(FirebaseInstaller.Url(part, version))))
+                    return version;
+            return "";
+        }
+
+        private static bool UrlExists(string url)
+        {
+            try
+            {
+                var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+                request.Method = "HEAD";
+                request.Timeout = 15000;
+                using (var response = (System.Net.HttpWebResponse)request.GetResponse())
+                    return response.StatusCode == System.Net.HttpStatusCode.OK;
+            }
+            catch (System.Net.WebException)
+            {
+                return false;   // 404: not published yet
+            }
+        }
 
         private static UnityWebRequest Request(Sdk s)
         {
@@ -183,7 +217,7 @@ namespace Base.Setup
             }
             bool HasCode(string path) => Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories).Any(f => f.EndsWith(".cs") || f.EndsWith(".dll"));
             Add("Assets/GoogleMobileAds", "Google Mobile Ads .unitypackage (replaced by AdMob above)", () => HasCode("Assets/GoogleMobileAds"));
-            Add("Assets/ExternalDependencyManager", "External Dependency Manager .unitypackage (replaced by EDM4U above)");
+            Add("Assets/ExternalDependencyManager", "External Dependency Manager .unitypackage (replaced by the External Dependency Manager above)");
             Add("Assets/Firebase", "Firebase .unitypackage (replaced by Firebase above)", () => HasCode("Assets/Firebase"));
             Add("Assets/AppsFlyer", "AppsFlyer .unitypackage (replaced by AppsFlyer above)", () => HasCode("Assets/AppsFlyer"));
             Add("Assets/GooglePlayPlugins", "Google Play plugins .unitypackage (replaced by In-App Review / Update above)");

@@ -40,6 +40,9 @@ namespace Base.Ads
             d["adMrecOnFTUE"] = c.adMrecOnFTUE;
             d["adBannerReload"] = c.adBannerReload;
             d["adBannerOffset"] = c.adBannerOffset;
+            d["adCtrMax"] = c.adCtrMax;
+            d["adCtrMin"] = c.adCtrMin;
+            d["forceMediaScaleMeta"] = c.forceMediaScaleMeta;
             d["taichi_config_json"] = "";
             d["adRewardFlow"] = (int)c.adRewardFlow;
         }
@@ -62,6 +65,11 @@ namespace Base.Ads
             c.adMrecOnFTUE = ZenRemote.GetInt("adMrecOnFTUE", c.adMrecOnFTUE);
             c.adBannerReload = ZenRemote.GetInt("adBannerReload", c.adBannerReload);
             c.adBannerOffset = ZenRemote.GetInt("adBannerOffset", c.adBannerOffset);
+            c.adCtrMax = ZenRemote.GetFloat("adCtrMax", c.adCtrMax);
+            c.adCtrMin = ZenRemote.GetFloat("adCtrMin", c.adCtrMin);
+            AdCtr.Max = c.adCtrMax;
+            AdCtr.Min = c.adCtrMin;
+            c.forceMediaScaleMeta = ZenRemote.GetBool("forceMediaScaleMeta", c.forceMediaScaleMeta);
             c.adRewardFlow = (AdFlow)ZenRemote.GetInt("adRewardFlow", (int)c.adRewardFlow);
 
             string taichiJson = ZenRemote.GetString("taichi_config_json", "");

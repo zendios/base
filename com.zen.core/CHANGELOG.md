@@ -1,6 +1,152 @@
 # Changelog (com.zen.core)
 
-## [Unreleased]
+## [1.3.0] - 2026-10-28
+- Unity 6000.6.7f1 or newer is required (package.json unity 6000.6 / unityRelease 7f1, also com.zen.plugins.adzative);
+  dependencies ugui 2.6.0, Input System 1.20.1. Base.dll / Base.Editor.dll built against the 6000.6.7f1 assemblies
+  (zen-base/libs adds UnityEngine.ScriptingModule: PreserveAttribute moved there). Notes and the check list for the
+  owner: UNITY66_UPGRADE.md at the repo root.
+- Android Minimum API Level 26 (Unity 6.6 drops 25): Setup (Core) flags a lower level, Set 26.
+- Gradle templates follow Unity 6.6: Android Gradle Plugin 9.1.1, no jniDebuggable in the launcher debug build type.
+- ShortcutManager (Android app shortcuts, zen-shortcuts.aar) removed; to be rewritten.
+- Export test package and the DOTween install use AssetPackage.Package.Export / Import (AssetDatabase.ExportPackage /
+  ImportPackage are obsolete on 6.6); the export still needs no Unity organization ID.
+- ZPAS tools run headless (from the Stickman Dismounting remaster): `RenameAssetWindow.ValidateCli` (CI naming gate,
+  `Logs/Zpas/naming.csv`, exit 1 while names fail), `RenameAssetWindow.RenameCli` (dry run, `-zpasApply` renames only
+  rows whose suggestion passes and whose old name is in no .cs file), `ZpasAudit.Run` (names with the Rename Assets
+  rules + folder casing + import settings; an automatic Android format that resolves to ASTC passes),
+  `ZpasReorganize.Run` (type folders -> `Assets/Production/<Type>/<Feature>`, plan first, `-zpasApply` moves with
+  GUIDs kept). Rename Assets treats AssetRipper type folders (`Texture2D`, `AudioClip`, `GameObject`...) and
+  `Production` / `Art` as type folders when it finds the Parent.
+- Docs: ZPAS §3 / §5 / §6 name these tools (the `NamingValidator` it described is `ValidateCli`), when mipmaps stay on,
+  and what an ASTC override really saves; Architecture §5 describes the `Button_*` structure and how an old game's
+  button moves onto it.
+- AdZative app open in the AdMob app open style (Android and iOS): a white card over the game dimmed by a 40% scrim
+  (was the interstitial "media top" layout on a dark screen). Portrait: media, icon, headline, attribution, pill CTA;
+  landscape: card 60% of the width, media left, details right. The "Continue to app" bar sits above the card and no
+  longer covers ad assets; before closeAfterSec it is dimmed (0.6) and inactive, the "Continue in N s" text is gone.
+- AdZative layouts (Android and iOS), from the UI/UX review on iPhone 13 Pro Max and Galaxy A12; the top bar (pod
+  label, countdown, Next, close) is unchanged:
+  - Banner: secondary text #B3FFFFFF (was #86868686, 2.2:1, now 9.9:1); landscape CTA #1A73E8 like portrait and MREC
+    (was #03A9F4, 2.6:1); landscape advertiser and store in the secondary colour, stars in the shared star yellow.
+    Android uses the colour tokens instead of hard-coded values.
+  - Green CTA (media centre) #188038 (was #1E8E3E, 4.2:1, now 5.0:1).
+  - Media top, portrait (interstitial, rewarded, app open): media + details centred vertically. A short creative
+    (square image, 16:9 video) left up to half the screen empty above it. Android MediaFrame app:zenHugHeight, iOS
+    AdZativeMediaAlignHug (was AdZativeMediaAlignBottom).
+  - Media centre, landscape: the left column is centred vertically; the spacer between the stars and the body is gone.
+  - iOS: a store row with no store / price takes no height (Android wrap_content); it took the free height and left a
+    gap above the CTA (measured 80 pt).
+  - MREC: light grey (#F1F3F4) behind a creative narrower than the media area.
+- Unity 6000.4.8f1 or newer is required (package.json unity / unityRelease, also com.zen.plugins.adzative): iOS 27
+  SDK builds must use the UIScene life cycle, which no public Unity 2022.3 has. Dependencies: ugui 2.0.0 (TextMeshPro
+  is part of it, com.unity.textmeshpro is gone), Input System 1.19.0.
+- AppsFlyer 7.0.3 (Setup > SDKs tested version): enableDebug / init / start awaited in sequence; the 6.x calls and the
+  APPSFLYER_7 define are gone. AppsFlyer 7 has no ATT wait: Base asks ATT before AppsFlyer starts (AdSplash).
+- Android templates (Editor/AndroidTemplates~) are Unity 6's (AGP 9.0.0, Gradle 9.1); the AGP 7.4.2 overrides (R8
+  8.1.56 classpath, androidx.browser 1.8.0, suppressUnsupportedCompileSdk) are gone; -Xss16m (R8 on Meta Audience
+  Network) and the Jetifier ignore list stay.
+  The main template keeps androidx.multidex:multidex (the manifest's MultiDexApplication): without it the app
+  crashed at launch (ClassNotFoundException), measured on a Galaxy A12.
+- iOSBuildPostProcess: the Podfile hook (pods at the Player Settings iOS version, dSYM, no stripping) runs at order 45,
+  after EDM writes the Podfile (40) and before pod install (50). At 10 it found no Podfile, pods kept iOS 12 / 13 and
+  Xcode 27 refused to build them.
+- iOS 17.0 minimum: Setup (Core) flags a lower iOS Target minimum version (Set 17.0); the Podfile hook, the Xcode
+  targets, Info.plist and the frameworks follow it.
+- Setup (Core) flags TextMesh Pro shaders from before Unity 6 in Assets/TextMesh Pro/Shaders (TMP 3.x vertex layout:
+  UV packed in texcoord1, scale in texcoord1.y): on Unity 6 text drawn with them is invisible (admobFont SDF uses
+  TMP_SDF, so every ButtonTestAd label disappeared). Update copies only the shaders of uGUI's TMP Essential Resources
+  over them (same GUIDs); TMP Settings and fonts stay.
+- Setup (Core) flags Android Gradle templates older than Base's (Android Gradle Plugin major below the one in
+  AndroidTemplates~): Replace copies the old ones to Assets/Plugins/Android/OldTemplates~ and puts Base's in their place
+  (manifests and proguard stay). Missing templates are still copied as before.
+- Firebase: when the Firebase app cannot be created (no or wrong GoogleService-Info.plist / google-services.json),
+  FirebaseManager stops after Analytics instead of throwing on GetSessionIdAsync, which ended AdSplash's coroutine and
+  left the game on the splash screen.
+- iOSBuildPostProcess: framework Info.plists are only rewritten when they ask for a newer iOS than the app (the
+  ITMS-90208 case, e.g. UMP's 100.0); lower ones stay untouched (signed vendor bundles, some not writable from Unity).
+  Binary plists are read through plutil (macOS) and one unreadable plist no longer stops the others.
+- AdZative iOS layouts measured against the approved Android ones (zen_banner, zen_banner_media, zen_mrec,
+  zen_inter_media_top / center, zen_appopen): the banner icon was stretched to 167 x 60 when the ad had no advertiser
+  (the badge + stars line locked the text column); stars are ratingBarStyleSmall (Material star, 16 cells, 80 x 16,
+  step 0.1; were 64 x 12); badge / CTA / stars give way before fixed sizes; Android margins kept when a neighbour is
+  missing (icon, body, store, CTA); no-media ads pack to the top; landscape media ratio and media-center split as on
+  Android; Android line heights (includeFontPadding); MREC and fullscreen CTAs full width without a constraint
+  conflict; top bar ✕ without the extra 8; app open Continue card reaches the screen edge and still takes taps while
+  counting down. Layout margins no longer grow with the safe area (a landscape banner under the Dynamic Island had
+  its marginStart 4 turned into 31). Measured in portrait and landscape on the iOS 27 simulator.
+- AdZative iOS media Crop (Base's default) fills the MediaView: GADMediaView kept its inner image view on aspect fit,
+  so images were letterboxed whatever the slot asked. Fullscreen ads: the native ad view and every asset stay in the safe
+  area (AdChoices visible in its corner; the AdMob validator rejects assets outside the native ad view); the screen
+  strip next to the media of the "media top" layouts (notch / Dynamic Island) takes the media's grey, not black. App open
+  "Continue" card: corners evenly rounded (radius at most half its height, as Android clamps it).
+- Setup lists iOS 14 Advertising Support (com.unity.ads.ios-support 1.2.0) as required: ATTHelper / AppsFlyerHelper use
+  it, an iOS build did not compile without it. AppsFlyer older than 7.0.0 stops the build with an error that points to
+  Setup (Base calls the 7.x API only).
+- Setup / iOSBuildPostProcess read an iOS version without a minor part ("16", "12"): the minimum-version check missed
+  it, and frameworks declaring one had their plist rewritten.
+- AdZative media at the creative's aspect ratio (Android and iOS): full-screen layouts and the MREC hold ad_media in
+  a frame (MediaFrame / AdZativeMediaFrame) that takes the space the media took; the media inside is sized to
+  MediaContent.aspectRatio, as large as fits, so the whole creative shows (a 1.91:1 image lost 64% of its width in
+  portrait, a 1:1 image half its height in the MREC). Media top: next to the details; media center, landscape, MREC:
+  centred. The MREC and every layout keep their size (the Unity rect is unchanged). No aspect ratio: fills as before.
+- AdZative landscape interstitial / rewarded layouts (Android layout-land, iOS): the native ad view starts below the
+  top bar (marginTop = zen_top_bar_height), as the layouts' own comment said; the countdown / Next / ✕ no longer sit
+  over the ad's assets.
+- Android landscape media-center layout: the row no longer centres its children vertically. With the media's
+  marginBottom 16dp, LinearLayout put the media 15 px above the native ad view, and the AdMob validator flagged
+  "Advertiser assets outside native ad view" (Galaxy A12).
+- AdZative_Inter_Default: closeLockedSec 1 (was 10): ✕ / Next stay dimmed and locked 1 s after the countdown when the
+  player's CTR is low.
+- AdZative test IDs (AdConfig useIdTest): a slot that allows video tries Google's native video test ID first, then the
+  image one. The image ID came first and always filled, so the Fallback waterfall never reached the video ID.
+- AdZative fullscreen top bar chips (pod label, countdown, Next, ✕) on Android and iOS: #80000000 instead of
+  #33FFFFFF. The bar sits on the media and, with the media cropped, white chips vanished on a light creative.
+- AdZative banner / MREC: a "show_failed" with reason not_ready (the ad was taken by another slot sharing the ad unit,
+  e.g. banner and MREC both on the Google test ID) no longer destroys the slot; the plugin keeps it waiting and shows
+  the next ad itself. Before, the banner stayed empty until the game state changed.
+- AppsFlyerHelper waits up to 2.5 s for the conversion data callback as intended (the loop never ran).
+- Base > Hub > Release > Export test package packs with tar (UPM tarball layout) instead of Client.Pack, which needs a
+  Unity organization ID on Unity 6000.4.
+- Base.dll / Base.Editor.dll built against the Unity 6000.4.8f1 assemblies (zen-base/libs, no TextCoreModule).
+- Unity 6.4 deprecations: UIManager finds itself with FindAnyObjectByType, the ads debug panels call FindObjectsByType
+  without a sort mode, TMP textWrappingMode, DONumber tweens use the text object as their id.
+- AdZative on iOS: com.zen.plugins.adzative ships an Objective-C plugin (Plugins/iOS/AdZative, source in zen-ios) with
+  the same slots, layouts, events and payloads as the Android AAR: banner / MREC, interstitial, app open, rewarded,
+  pods, host-driven ✕ / Next / countdown. IOSAdZativeBridge (DllImport) behind IAdZativeBridge; AdZativeIosBuild makes
+  the sources iOS-only with -fobjc-arc and links Network.framework. Base AdZative runs on iOS too (it answered
+  LoadNotAvailable before); test mode (AdConfig useIdTest) uses Google's iOS native test IDs, dp -> Canvas units use
+  the plugin's pixels per point. Not yet built or run on an iPhone.
+- AdmobBanner on iOS: GetScreenScale / GetScreenNativeScale / GetIsDownsampling are implemented again
+  (Runtime/Ads/Plugins/iOS/AdmobBannerScreen.m); they left with the old ZativeAd framework and an iOS build could not
+  link.
+- AdZative pools (Android and iOS): a pool whose expired ads were purged inside fill() could send a second request
+  (two load_request) while the first was in flight.
+- AdMob 11.6.0 (Base and AdZative depend on it). It brings Unity's External Dependency Manager
+  (com.unity.external-dependency-manager, Unity registry) instead of Google's EDM4U, which becomes a disabled stub
+  (Firebase's dependency on it is still met). Setup > SDKs lists "EDM (Unity)" 2.1.1 in place of EDM4U.
+- Unity IAP 5.4.4 tested. Firebase pinned to 14.0.0 (Base compiles against it).
+- A game without Firebase is asked once per editor session to integrate it: Install Firebase / Later / Not in this
+  game (remembered per project; Base > Hub > Setup can still install it). AdMob, which Base needs, is already asked for.
+- Setup > SDKs: the newest Firebase is the newest firebase-unity-sdk tag whose four archives are on dl.google.com
+  (a tag can come before the archives), so Update never points at a version that cannot be downloaded.
+- Old games keep their players' data: a save written by an older Base with BinaryFormatter (same <package>.gd file)
+  was unreadable since 1.2.8, and the next save overwrote it. DataManager now reads it without BinaryFormatter
+  (LegacySaveReader, MS-NRBF to JSON with the old field names), copies userData (currency, VIP, Remove Ads, counters),
+  keeps the original as .gd.legacy, raises DataManager.OnLegacySaveLoaded(json) for the game's own data and saves JSON
+  at once. Any other unreadable save is kept as .gd.unreadable instead of being overwritten. Analytics events
+  save_legacy_migrated, save_legacy_failed, save_unreadable.
+- ISaveSection + DataManager.RegisterSection: the game saves its own data (levels, cars, extra player fields...) in
+  Base's save file under its own key, without editing the package. GameData.GetSection / SetSection.
+- Data sample (Package Manager > Base > Samples > Data, scene 98_DataSample): characters and vehicles as ItemDatas,
+  per-item upgrades and extra player fields as ISaveSection, a legacy save handler, a custom UIPopupBase popup;
+  Tools > Zen Samples > Write Legacy Save writes an old-format save to try the migration.
+- Documentation~/UpgradeOldGame.md: steps to move a game from Assets/Base to the packages without losing saves.
+- Unity 6: CurrencyManager compiles (no [SerializeField] on the static SoftName / HardName properties).
+- ItemBase.resoucePath / prefabInResource are public: a game's ItemBase subclasses could not read them.
+- GameMode left Base: each game has its own modes, so the game declares its own GameMode enum (keep its numbers).
+  FirebaseManager.LogLevel takes any enum as mode.
+- Setup (Ads): error when Google Mobile Ads builds the Standard Android SDK; AdZative needs Next-Gen (native ads
+  failed on device with NoClassDefFoundError ...ads.mobile.sdk). Fix all selects Next-Gen in GoogleMobileAdsSettings.
 
 ## [1.2.9] - 2026-10-12
 - AdMob is required by Base and by its native ads: com.zen.plugins.adzative now depends on com.google.ads.mobile 11.5.0

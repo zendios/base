@@ -203,19 +203,33 @@ namespace Base.Ads
             set => _adTimeBetween = value;
         }
 
-        [SerializeField]
-        protected float _adCtrMeta = 0.5f;
-        public float adCtrMeta
+        [Tooltip("Native full-screen ads: this player's CTR of the ad unit ID at or below this = ✕ / Next locked closeLockedSec after the countdown (AdCtr).")]
+        [SerializeField, Range(0f, 1f)]
+        protected float _adCtrMin = 0.1f;
+        public float adCtrMin
         {
             get
             {
-                return _adCtrMeta;
+                return _adCtrMin;
             }
             set
             {
-                _adCtrMeta = value;
-                if (_adCtrMeta < 0.25f)
-                    _adCtrMeta = 0.25f;
+                _adCtrMin = value;
+            }
+        }
+
+        [Tooltip("Native full-screen ads: CTR above this after a click on the ad = the next ad of the pod, or close, when the player comes back (AdCtr).")]
+        [SerializeField, Range(0f, 1f)]
+        protected float _adCtrMax = 0.35f;
+        public float adCtrMax
+        {
+            get
+            {
+                return _adCtrMax;
+            }
+            set
+            {
+                _adCtrMax = value;
             }
         }
 
@@ -369,6 +383,22 @@ namespace Base.Ads
             set
             {
                 _adBannerOffset = value;
+            }
+        }
+
+        [Tooltip("Native ads (AdZative): ON = media image kept whole (Fit, Meta forbids cropping), OFF = Center Crop " +
+                 "(fills the media box in every placement). Remote Config key forceMediaScaleMeta; applies to slots registered after it.")]
+        [SerializeField]
+        protected bool _forceMediaScaleMeta = false;
+        public bool forceMediaScaleMeta
+        {
+            get
+            {
+                return _forceMediaScaleMeta;
+            }
+            set
+            {
+                _forceMediaScaleMeta = value;
             }
         }
 

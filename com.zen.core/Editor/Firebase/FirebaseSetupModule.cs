@@ -41,32 +41,37 @@ namespace Base
     /// <summary>
     /// Installs the Firebase Unity SDK (app, analytics, remote-config, crashlytics) from Google's official package
     /// archive (dl.google.com/games/registry/unity): the .tgz go into Packages/ with file: entries in manifest.json.
-    /// Base pins one tested version (Pinned); BaseSdks.CheckLatest reads the official firebase/firebase-unity-sdk tags
+    /// Base pins one tested version (Pinned); BaseSdks.CheckLatest reads the official firebase/firebase-unity-sdk tags (only a version whose archives are on dl.google.com)
     /// for a newer one, which the Setup tab offers as an Update.
     /// </summary>
     internal static class FirebaseInstaller
     {
-        public const string Pinned = "13.17.0";
-        private static readonly string[] Parts = { "app", "analytics", "remote-config", "crashlytics" };
+        public const string Pinned = "14.0.0";
+        internal static readonly string[] Parts = { "app", "analytics", "remote-config", "crashlytics" };
         private const string ManifestPath = "Packages/manifest.json";
 
         /// <summary>Raised after an install changed manifest.json.</summary>
         public static event Action Changed;
 
-        private static string Url(string part, string version) =>
+        internal static string Url(string part, string version) =>
             $"https://dl.google.com/games/registry/unity/com.google.firebase.{part}/com.google.firebase.{part}-{version}.tgz";
+
+        /// <summary>Asks, then downloads this version (Download).</summary>
+        public static void Install(string version)
+        {
+            if (EditorUtility.DisplayDialog("Firebase", $"Download Firebase {version} (app, analytics, remote-config, crashlytics, about 65 MB) from dl.google.com into Packages/ and use it?", "Download", "Cancel"))
+                Download(version);
+        }
 
         /// <summary>Downloads the 4 packages of this version into Packages/, points manifest.json at them, removes the
         /// other versions' .tgz and resolves.</summary>
-        public static void Install(string version)
+        public static void Download(string version)
         {
-            if (!EditorUtility.DisplayDialog("Firebase", $"Download Firebase {version} (app, analytics, remote-config, crashlytics, about 65 MB) from dl.google.com into Packages/ and use it?", "Download", "Cancel"))
-                return;
             try
             {
                 foreach (var part in Parts)
                 {
-                    string file = $"Packages/com.google.firebase.{part}-{version}.tgz";
+                    string file = Path.GetFullPath($"Packages/com.google.firebase.{part}-{version}.tgz");   // DownloadHandlerFile needs an absolute path
                     if (File.Exists(file))
                         continue;
                     using (var req = UnityWebRequest.Get(Url(part, version)))
@@ -116,6 +121,44 @@ namespace Base
             Debug.Log($"[Base Setup] Firebase {version} installed from dl.google.com (Packages/*.tgz, manifest.json)");
             Client.Resolve();
             Changed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// A game without Firebase is asked, once per editor session, whether to integrate it: Install (the pinned version),
+    /// Later, or Not in this game (remembered for this project; Base > Hub > Setup can still install it).
+    /// AdMob, which Base needs, is asked for by BaseBootstrap.
+    /// </summary>
+    [InitializeOnLoad]
+    internal static class FirebaseRequest
+    {
+        private const string AskedKey = "Base.Firebase.Asked";
+        private static string DeclinedKey =>
+            $"Base.Firebase.Declined.{Path.GetFileName(Path.GetDirectoryName(UnityEngine.Application.dataPath))}";
+
+        static FirebaseRequest()
+        {
+            EditorApplication.delayCall += Ask;
+        }
+
+        private static void Ask()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode || UnityEngine.Application.isBatchMode)
+                return;
+            if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Firebase.App"))
+                return;
+            if (EditorPrefs.GetBool(DeclinedKey, false) || SessionState.GetBool(AskedKey, false))
+                return;
+            SessionState.SetBool(AskedKey, true);
+            int choice = EditorUtility.DisplayDialogComplex("Base: integrate Firebase?",
+                "This game has no Firebase. Base uses it for analytics, Remote Config (ads and game settings) and Crashlytics.\n\n" +
+                $"Install downloads Firebase {FirebaseInstaller.Pinned} (app, analytics, remote-config, crashlytics, about 65 MB) " +
+                "from dl.google.com into Packages/.",
+                "Install Firebase", "Later", "Not in this game");
+            if (choice == 0)
+                FirebaseInstaller.Download(FirebaseInstaller.Pinned);
+            else if (choice == 2)
+                EditorPrefs.SetBool(DeclinedKey, true);
         }
     }
 }

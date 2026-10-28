@@ -65,6 +65,13 @@ namespace Base.Ads
         public void SetRefreshSec(string slotId, int seconds) => _facade.CallStatic("setRefreshSec", slotId, seconds);
         public void SetLayoutMode(string slotId, string mode) => _facade.CallStatic("setLayoutMode", slotId, mode);
         public void CloseFullscreen() => _facade.CallStatic("closeFullscreen");
+        public void SetFullscreenButtons(string slotId, string closeMode, string nextMode)
+            => _facade.CallStatic("setFullscreenButtons", slotId, closeMode, nextMode);
+        public void NextFullscreen() => _facade.CallStatic("nextFullscreen");
+        public void SetFullscreenCountdown(string slotId, int secondsLeft, float alpha)
+            => _facade.CallStatic("setFullscreenCountdown", slotId, secondsLeft, alpha);
+        public void SetFullscreenButtonAlpha(string slotId, float closeAlpha, float nextAlpha)
+            => _facade.CallStatic("setFullscreenButtonAlpha", slotId, closeAlpha, nextAlpha);
         public void HandleBack() => _facade.CallStatic("handleBack");
         public void SetAppOpenSuppressed(bool suppressed) => _facade.CallStatic("setAppOpenSuppressed", suppressed);
         public void SuppressNextForeground() => _facade.CallStatic("suppressNextForeground");

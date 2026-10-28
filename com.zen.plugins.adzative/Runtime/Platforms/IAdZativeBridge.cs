@@ -2,7 +2,7 @@ using System;
 
 namespace Base.Ads
 {
-    /// <summary>Platform seam: Android now, iOS later, Editor stub for iteration. Game code never sees it.</summary>
+    /// <summary>Platform seam: Android, iOS, Editor stub for iteration. Game code never sees it.</summary>
     internal interface IAdZativeBridge
     {
         void Initialize(string appId, Action<string, string, string> onEvent);
@@ -33,6 +33,13 @@ namespace Base.Ads
         void SetRefreshSec(string slotId, int seconds);
         void SetLayoutMode(string slotId, string mode);
         void CloseFullscreen();
+        /// <param name="closeMode">AUTO | SHOW | HIDE | LOCKED (✕); nextMode likewise for Next.</param>
+        void SetFullscreenButtons(string slotId, string closeMode, string nextMode);
+        /// <summary>Countdown chip: secondsLeft >= 1 shows "Ns" at alpha, 0 hides it, -1 = native countdown.</summary>
+        void SetFullscreenCountdown(string slotId, int secondsLeft, float alpha);
+        void SetFullscreenButtonAlpha(string slotId, float closeAlpha, float nextAlpha);
+        /// <summary>Next ad of the pod on screen now: "pod_next" (trigger host), or "next_ignored".</summary>
+        void NextFullscreen();
         void HandleBack();
         void SetAppOpenSuppressed(bool suppressed);
         void SuppressNextForeground();

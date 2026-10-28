@@ -15,7 +15,7 @@ public static class TextExtension
     {
         if (target != null)
         {
-            DOTween.Complete(target.GetInstanceID());
+            DOTween.Complete(target);
             target.DOComplete();
             target.transform.DOComplete();
             DOVirtual.Float(startValue, endValue, duration, (s) =>
@@ -23,7 +23,7 @@ public static class TextExtension
                 if (target.IsDestroyed())
                     return;
                 target.text = s.ToString(format);
-            }).SetId(target.GetInstanceID()).OnComplete(() => target.transform.DOScale(1.1f, 0.125f).SetEase(Ease.InCubic)
+            }).SetId(target).OnComplete(() => target.transform.DOScale(1.1f, 0.125f).SetEase(Ease.InCubic)
                 .OnComplete(() => target.transform.DOScale(1.0f, 0.25f).SetEase(Ease.OutCubic)
                 .OnComplete(() => actionOnDone?.Invoke())));
         }
@@ -39,7 +39,7 @@ public static class TextExtension
     {
         if (target != null)
         {
-            DOTween.Complete(target.GetInstanceID());
+            DOTween.Complete(target);
             target.DOComplete();
             target.transform.DOComplete();
             DOVirtual.Float(startValue, endValue, duration, (s) =>
@@ -47,7 +47,7 @@ public static class TextExtension
                 if (target.IsDestroyed())
                     return;
                 target.text = s.ToString(format);
-            }).SetId(target.GetInstanceID()).OnComplete(() => target.transform.DOScale(1.1f, 0.125f).SetEase(Ease.InCubic)
+            }).SetId(target).OnComplete(() => target.transform.DOScale(1.1f, 0.125f).SetEase(Ease.InCubic)
                 .OnComplete(() => target.transform.DOScale(1.0f, 0.25f).SetEase(Ease.OutCubic)
                 .OnComplete(() => actionOnDone?.Invoke())));
         }

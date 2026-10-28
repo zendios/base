@@ -6,7 +6,9 @@ ATT, Taichi, in-app review / update, splash, debug tools), **IAP** (IAPManager, 
 **Firebase** (Analytics, Remote Config, Crashlytics), screens (ScreenUtils) and **Base > Hub**.
 `com.zen.plugins.adzative` (native ads plugin, built from zen-android) is its only Zen companion.
 
-Required SDKs: TextMeshPro, uGUI, Input System, AdMob (`com.google.ads.mobile`, OpenUPM), DOTween (free) or DOTween Pro in Assets/Plugins/Demigiant (no ASMDEF needed).
+Requires **Unity 6000.6.7f1** or newer (iOS 27 SDK needs the UIScene life cycle, which Unity 2022.3 public releases
+lack) and an iOS Target minimum version of **17.0** and Android Minimum API Level **26** (Base > Hub > Setup sets them).
+Required SDKs: uGUI 2.6 (TextMeshPro included), Input System, AdMob (`com.google.ads.mobile`, OpenUPM), DOTween (free) or DOTween Pro in Assets/Plugins/Demigiant (no ASMDEF needed).
 Optional SDKs switch their part on when installed and off when missing, without compile errors:
 Unity IAP (`USE_IN_APP_PURCHASE`), Firebase (`USE_FIREBASE`), AppsFlyer (`USE_APPSFLYER`), Play Review
 (`USE_IN_APP_REVIEW`), Play App Update (`USE_IN_APP_UPDATE`). Do not add these symbols by hand: Base sets them (USE_ADMOB also in Player Settings while the AdMob SDK is there, like USE_ADZATIVE).
@@ -39,10 +41,10 @@ install the latest free DOTween from dotween.demigiant.com. Then step 2 below. B
    ```
    The packages come from the public github.com/zendios/base (MIT), built by OpenUPM. Without OpenUPM:
    `https://github.com/zendios/base.git?path=/com.zen.core#1.2.5` (and `/com.zen.plugins.adzative`).
-2. **Base > Hub > Setup > SDKs**: tick what the game uses (required: AdMob, EDM4U; mediation: Meta by default;
+2. **Base > Hub > Setup > SDKs**: tick what the game uses (required: AdMob, EDM (Unity's External Dependency Manager); mediation: Meta by default;
    AppsFlyer, In-App Review, In-App Update, Unity IAP, Firebase) and press **Install required + selected**. Every SDK
-   comes at the version Base was tested with, from its official source: OpenUPM (AdMob, mediation adapters, EDM4U, Play
-   plugins), github.com/AppsFlyerSDK (tag v6.17.900; newer AppsFlyer needs a newer Unity), the Unity registry (IAP),
+   comes at the version Base was tested with, from its official source: OpenUPM (AdMob, mediation adapters, Play
+   plugins), github.com/AppsFlyerSDK (tag v7.0.3), the Unity registry (IAP, EDM),
    dl.google.com (Firebase .tgz). **Check latest versions** shows newer ones (Update, not tested yet); **Use x.y.z**
    goes back to the tested version. An old game also gets **Old installs**: .unitypackage copies (Assets/GoogleMobileAds,
    ExternalDependencyManager, Firebase, AppsFlyer, GooglePlayPlugins, Base) to remove. **Unused packages > Scan** lists the
@@ -96,6 +98,9 @@ Values are taken from the highest layer that has them.
 - Game items (skins, boosters...): `class SkinDatas : ItemDatas<SkinData>`, add the asset to `DataManager.itemDatas`;
   it is saved by asset name. `DataManager.Get<SkinDatas>()` returns it.
 - Player data: subclass `UserDataBase`.
+- The game's own save data (levels, cars, extra player fields): implement `ISaveSection` (key + JSON) and call
+  `DataManager.RegisterSection(section)` from a `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]`
+  method. It is saved in Base's save file under its key.
 - Last resort: copy the package folder into the game's `Packages/` (embedded) to patch it; it then stops updating.
 
 ## Screens: every ratio, portrait and landscape
@@ -118,6 +123,8 @@ one, Base > Hub opens on Setup. Pick any released version there (its CHANGELOG n
 
 ## Coming from `Assets/Base` (com.zen.base 1.0)
 
+Full steps, including the save migration test: [Documentation~/UpgradeOldGame.md](Documentation~/UpgradeOldGame.md).
+
 1. Delete `Assets/Base`, install the packages, run **Base > Hub > Setup > Fix all**.
 2. Copy each `AdIdData` (Admob_Inter_Default...) ID list into its `ZenAdIds` row; move your `AdConfig.asset` into
    `Assets/Resources` (keep its .meta).
@@ -126,6 +133,11 @@ one, Base > Hub opens on Setup. Pick any released version there (its CHANGELOG n
    `FirebaseRemote` -> `ZenRemote` (keys unchanged). Remove `USE_*` symbols from Player Settings.
 4. `BoosterDatas` / `OutfitDatas` left Base: keep your own classes with those names and add their assets to
    `DataManager.itemDatas`; existing saves move into them on the first load.
+5. Players' saves: a game released with an older Base saved with BinaryFormatter. The first launch of the new build
+   converts that file (userData is copied by field name, the original stays as `<package>.gd.legacy`) and raises
+   `DataManager.OnLegacySaveLoaded(json)`. Subscribe to it (BeforeSceneLoad) and copy the game's own data out of the
+   JSON, e.g. `JsonUtility.FromJsonOverwrite(json, myOldShape)`, where `myOldShape` has the old field names. Test with
+   a real save file from the released build.
 
 ## Developing the packages
 

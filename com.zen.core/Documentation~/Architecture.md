@@ -10,7 +10,7 @@ agents: [AGENTS.md](../AGENTS.md).
 Game (Assets/)          scenes, screens (UIScreen), popups, gameplay, Resources/ZenAdIds + AdConfig + ZenIapSettings
 com.zen.core            managers (prefabs), services, UI framework, ads waterfall, IAP, Firebase, Base > Hub
 Base.dll (zen-base)     GameStateManager, DataManagerBase, ItemData(s), UIAnim / UIAnimManager, enums
-SDKs                    AdMob, EDM4U, DOTween (required); Unity IAP, Firebase, AppsFlyer, Play Review / Update (optional)
+SDKs                    AdMob, EDM (Unity's External Dependency Manager), DOTween (required); Unity IAP, Firebase, AppsFlyer, Play Review / Update (optional)
 ```
 
 Optional SDKs switch their part on with a symbol Base sets by itself (`USE_IN_APP_PURCHASE`, `USE_FIREBASE`,
@@ -178,6 +178,14 @@ Prefab building blocks (UI/Prefabs): `Canvas_Base` / `Canvas_Base_Portrait` (Can
 `Popup_Base` (UIAnim root + dimmed background + content pane: make popups as variants of it), `Button_Base` →
 `Button_Icon` / `Button_Text` → `Button_CTA`, `Icon_Base`, `Text_Base`, `Event_System`, `UI_Camera`,
 `UIManagerDebug` (a canvas with buttons that call UIManager: drop it under UIManager to try things).
+
+Button structure (keep it when making variants, a game's button joins Base by matching it):
+`Button_Base` root = `Button` + `Animator` (press animation, so the Button has no target graphic) → child
+`ButtonBackground` (`Image`, the sprite and colour) → child `Content`. `Button_Icon` puts an `Icon_Base` and
+`Button_Text` a `Text_Base` under `Content`; `Button_CTA` has both. To move an old game's button (root `Image` +
+`Button`, label or icon as a direct child) onto Base: a variant of the matching `Button_*`, the old sprite on
+`ButtonBackground`, the old label / icon values on `Content`'s child, listeners re-added; a size family the game uses
+often (a small round button) is a variant in the game, not a new Base prefab.
 
 **Screens and ratios**: `ScreenUtils` on each root canvas uses Expand with `landscapeReference` 1920×1080 /
 `portraitReference` 1080×1920 and `tabletMaxScale` 1.3; `static bool IsPortrait`, `static event Action<bool>

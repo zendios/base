@@ -28,7 +28,7 @@ namespace Base.Ads
 
         public AdZativeSourcePolicy sourcePolicy = AdZativeSourcePolicy.Fallback;
         public AdZativeLayoutStyle layoutStyle = AdZativeLayoutStyle.Style1;
-        [Tooltip("Android layout name when Layout Style = Custom (res/layout/<name>.xml).")]
+        [Tooltip("Layout name when Layout Style = Custom: Android res/layout/<name>.xml, iOS <name>.xib in the app bundle.")]
         public string customLayout = "";
 
         [Header("Refresh & preload")]

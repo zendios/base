@@ -13,9 +13,9 @@ namespace Base.Tools
     /// rename the selected ones. AssetDatabase.RenameAsset keeps the GUID, so prefabs and scenes keep their references.
     /// Names loaded by string (Resources.Load, Resources/ClassName) are flagged when the old name appears in a .cs file.
     /// </summary>
-    public class RenameAssetWindow : EditorWindow
+    public partial class RenameAssetWindow : EditorWindow
     {
-        private enum AssetKind { Texture, Audio, Model, Material, Animation, Controller, Prefab, Scene, Atlas, Other }
+        internal enum AssetKind { Texture, Audio, Model, Material, Animation, Controller, Prefab, Scene, Atlas, Other }
 
         private class Row
         {
@@ -45,7 +45,10 @@ namespace Base.Tools
         {
             "images", "textures", "sprites", "materials", "particle_materials", "particles", "prefabs", "audio", "sounds",
             "sfxs", "sfx", "bgm", "vfxs", "models", "meshes", "animations", "runtime", "scripts", "resources", "editor", "ui",
-            "common", "commons", "shared", "packages", "assets", "fonts", "scenes",
+            "common", "commons", "shared", "packages", "assets", "fonts", "scenes", "production", "art",
+            // type folders of a project rebuilt from a build (AssetRipper export)
+            "texture2d", "sprite", "audioclip", "animationclip", "animatorcontroller", "gameobject", "material", "physicmaterial",
+            "spriteatlas", "font", "mesh", "shader", "monobehaviour", "scriptableobject",
         };
         // first words that are a part on their own: what follows is the property (icon_remove_ads -> icon + remove_ads)
         private static readonly string[] LeadParts = { "icon", "btn", "button", "bg", "bar", "toggle", "panel", "frame" };
@@ -129,7 +132,7 @@ namespace Base.Tools
         }
 
         /// <summary>Only the game's own assets and Base's packages: third-party SDK folders (AppsFlyer, AdMob, LevelPlay...) are skipped.</summary>
-        private static bool IsExcluded(string path)
+        internal static bool IsExcluded(string path)
         {
             if (!path.StartsWith("Assets/") && !path.StartsWith("Packages/com.zen."))
                 return true;
@@ -160,7 +163,7 @@ namespace Base.Tools
             return folder == null ? "" : folder.Replace('\\', '/');
         }
 
-        private static AssetKind KindOf(string path)
+        internal static AssetKind KindOf(string path)
         {
             switch (Path.GetExtension(path).ToLowerInvariant())
             {
@@ -231,7 +234,7 @@ namespace Base.Tools
         }
 
         /// <summary>ZPAS check of one name at a path: null when it passes.</summary>
-        private static string Check(AssetKind kind, string path, string name)
+        internal static string Check(AssetKind kind, string path, string name)
         {
             if (string.IsNullOrEmpty(name)) return "empty name";
             var words = name.Split('_');
@@ -543,8 +546,17 @@ namespace Base.Tools
                 return;
 
             var errors = new StringBuilder();
+            int done = Rename(pending, errors);
+            Scan();
+            _status = $"Renamed {done} of {pending.Count}." + (errors.Length > 0 ? " Errors in the Console." : "")
+                      + " Names still in code (CodeHits) must be changed by hand.";
+        }
+
+        /// <summary>Renames the rows with AssetDatabase.RenameAsset (GUIDs stay). Returns how many were renamed.</summary>
+        private static int Rename(List<Row> rows, StringBuilder errors)
+        {
             int done = 0;
-            foreach (var row in pending)
+            foreach (var row in rows)
             {
                 var error = AssetDatabase.RenameAsset(row.Path, row.NewName);
                 if (string.IsNullOrEmpty(error)) done++;
@@ -552,11 +564,8 @@ namespace Base.Tools
             }
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[Base Rename] renamed {done}/{pending.Count}" + (errors.Length > 0 ? "\n" + errors : ""));
-
-            Scan();
-            _status = $"Renamed {done} of {pending.Count}." + (errors.Length > 0 ? " Errors in the Console." : "")
-                      + " Names still in code (CodeHits) must be changed by hand.";
+            Debug.Log($"[Base Rename] renamed {done}/{rows.Count}" + (errors.Length > 0 ? "\n" + errors : ""));
+            return done;
         }
     }
 }

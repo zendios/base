@@ -1,23 +1,4 @@
 ﻿/// <summary>
-/// The mode name is very important, as it affects all the data, so it needs to be carefully studied and chosen to be as clear and accurate as possible!
-/// </summary>
-public enum GameMode
-{
-    None = 0,
-    Classic = 1, //DON'T Remove Classic, Adventure
-    Adventure = 2, //DON'T Remove Classic, Adventure
-
-    Racing = 100,
-    Parking = 101,
-    Clibing = 102,
-    Jumping = 103,
-    TimeTrial = 104,
-    TimeAttack = 105,
-
-    All = 999
-}
-
-/// <summary>
 /// User chơi level này trong hoàn cảnh nào
 /// </summary>
 public enum PlayType

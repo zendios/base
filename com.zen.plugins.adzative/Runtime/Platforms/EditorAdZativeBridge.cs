@@ -132,6 +132,17 @@ namespace Base.Ads
             _emit(id, "fullscreen_closed", "{}");
         }
 
+        public void SetFullscreenButtons(string id, string closeMode, string nextMode) { }
+        public void SetFullscreenCountdown(string id, int secondsLeft, float alpha) { }
+        public void SetFullscreenButtonAlpha(string id, float closeAlpha, float nextAlpha) { }
+
+        // The Editor preview shows one ad, never a pod.
+        public void NextFullscreen()
+        {
+            if (_view.Fullscreen == null) _emit("", "next_ignored", "{\"reason\":\"no_fullscreen\"}");
+            else _emit(_view.Fullscreen, "next_ignored", "{\"reason\":\"last_ad\"}");
+        }
+
         public void HandleBack() => CloseFullscreen();
         public void SetAppOpenSuppressed(bool s) { }
         public void SuppressNextForeground() { }

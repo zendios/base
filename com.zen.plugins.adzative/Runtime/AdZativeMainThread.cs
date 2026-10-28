@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -31,6 +32,9 @@ namespace Base.Ads
             lock (Lock) Queue.Enqueue(a);
         }
 
+        internal static Coroutine Run(IEnumerator routine) => _instance.StartCoroutine(routine);
+        internal static void Halt(Coroutine routine) => _instance.StopCoroutine(routine);
+
         private void Update()
         {
             lock (Lock)
@@ -46,6 +50,8 @@ namespace Base.Ads
 
             if (AdZativeSDK.IsFullscreenShowing && BackPressed()) AdZativeSDK.HandleBackKey();
         }
+
+        private void OnApplicationPause(bool pause) => AdZativeCloseTimer.OnAppPause(pause);
 
         private static bool BackPressed()
         {

@@ -92,11 +92,11 @@ RectTransform:
   - {fileID: 5266930092862082297}
   m_Father: {fileID: 2319710619026894962}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 20, y: -20}
-  m_SizeDelta: {x: 0, y: 60}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -40, y: -120}
+  m_SizeDelta: {x: 0, y: 120}
+  m_Pivot: {x: 1, y: 1}
 --- !u!114 &3774390410532636335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,10 +157,6 @@ PrefabInstance:
       propertyPath: m_text
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2554073764197986320, guid: 33a557ab70bf3c24b867a61bf224c196, type: 3}
-      propertyPath: m_fontSize
-      value: 36
-      objectReference: {fileID: 0}
     - target: {fileID: 3708976600323871852, guid: 33a557ab70bf3c24b867a61bf224c196, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -171,7 +167,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5702381986184327627, guid: 33a557ab70bf3c24b867a61bf224c196, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6413718277963314160, guid: 33a557ab70bf3c24b867a61bf224c196, type: 3}
       propertyPath: m_Name

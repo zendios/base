@@ -29,11 +29,11 @@ namespace Base
         }
 
         [SerializeField]
-        internal string resoucePath = null;
+        public string resoucePath = null;
 
 #if UNITY_EDITOR
         [SerializeField]
-        internal GameObject prefabInResource = null;
+        public GameObject prefabInResource = null;
 #endif
     }
 }

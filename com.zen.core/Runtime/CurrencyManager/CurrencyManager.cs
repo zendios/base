@@ -14,7 +14,6 @@ public class CurrencyManager : MonoBehaviour
     protected TextMeshProUGUI softLabel = null;
     [SerializeField]
     protected string softName = "Cash";
-    [SerializeField]
     public static string SoftName
     {
         get
@@ -65,7 +64,6 @@ public class CurrencyManager : MonoBehaviour
     protected TextMeshProUGUI hardLabel = null;
     [SerializeField]
     protected string hardName = "Token";
-    [SerializeField]
     public static string HardName
     {
         get

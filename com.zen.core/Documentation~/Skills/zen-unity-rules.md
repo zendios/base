@@ -22,8 +22,8 @@ Style của dự án thắng style của e-book. Đang sửa file nào thì theo
 
 ## 2. Bối cảnh
 
-- Hiện tại Unity **2022.3.62f3**, đích **Android** (game casual). Sắp tới các dự án sẽ nâng lên **Unity 6**.
-  Quy tắc: **chỉ dùng cái chạy được trên 2022.3**, và viết sao cho lên Unity 6 không phải sửa (mục 9).
+- Unity **6000.6.7f1** (Base yêu cầu tối thiểu bản này; nâng từ 6000.4.8f1, xem `UNITY66_UPGRADE.md`), đích **Android** (tối thiểu API 26) và **iOS** (17.0) (game casual).
+  Unity 2022.3 không còn được hỗ trợ: SDK iOS 27 bắt buộc UIScene, bản 2022.3 công khai không có (mục 9).
 - UI: **uGUI + TextMeshPro + DOTween**. Không dùng UI Toolkit.
 - Lõi dùng chung: `Packages/com.zen.core` (Base), `Packages/com.zen.plugins.adzative`, `Base.dll` build từ `zen-base`.
 
@@ -180,15 +180,17 @@ Câu nào trả lời "không" thì dừng lại và chọn cách đơn giản h
 | Từ `test` trong tên (ZPAS cũ cấm) | **Được phép** (Zendios đã chốt): `ButtonTestAd`, `Scripts/Test`, `AdsTestAllPanel` giữ nguyên |
 | Texture POT (ZPAS: mọi texture) | Chưa chốt nới cho sprite trong Atlas: hỏi trước khi làm khác ZPAS |
 
-## 9. Sẵn sàng cho Unity 6
+## 9. Unity 6
 
-Viết code compile được trên cả 2022.3 và Unity 6:
+Code chạy trên Unity 6000.6.7f1, không cảnh báo `[Obsolete]`:
 
-- Dùng `FindFirstObjectByType<T>()` / `FindAnyObjectByType<T>()` / `FindObjectsByType<T>(...)` (có từ 2022.3) thay cho `FindObjectOfType` / `FindObjectsOfType` (lỗi thời ở Unity 6). Code cũ đang dùng thì chỉ đổi khi đã sửa file đó hoặc khi nâng cấp.
-- Không dùng API chỉ có ở Unity 6 (`Awaitable`, `Rigidbody.linearVelocity`...) khi dự án còn ở 2022.3.
-- Không dựa vào API đã đánh dấu `[Obsolete]` trong 2022.3.
+- Dùng `FindAnyObjectByType<T>()` / `FindObjectsByType<T>(FindObjectsInactive)`. `FindObjectOfType`, `FindFirstObjectByType` và bản `FindObjectsByType` có `FindObjectsSortMode` đều lỗi thời ở Unity 6.4.
+- `GetInstanceID` là **lỗi** trên 6.6 (thay bằng `GetEntityId`); TMP dùng `textWrappingMode`, không `enableWordWrapping`.
+- Gói asset: `AssetPackage.Package.Export / Import`, không `AssetDatabase.ExportPackage / ImportPackage` (lỗi thời trên 6.6).
+- uGUI 2.6: `LayoutGroup.SetLayoutInputForAxis` có thêm tham số `max`; Android tối thiểu API 26 (`AndroidApiLevel26`).
+- Code cũ còn dùng API lỗi thời thì đổi khi sửa tới file đó.
 
-Sau khi nâng lên Unity 6 mới cân nhắc (mỗi mục cần đo và được duyệt): `Awaitable` thay coroutine cho luồng async, GPU Resident Drawer và GPU occlusion culling (chỉ khi dùng URP), Spatial-Temporal Post-Processing, Adaptive Probe Volumes. UI Toolkit runtime binding và MVVM vẫn không dùng.
+Cân nhắc thêm (mỗi mục cần đo và được duyệt): `Awaitable` thay coroutine cho luồng async, GPU Resident Drawer và GPU occlusion culling (chỉ khi dùng URP), Spatial-Temporal Post-Processing, Adaptive Probe Volumes. UI Toolkit runtime binding và MVVM vẫn không dùng.
 
 ## 10. Trước khi báo "xong"
 

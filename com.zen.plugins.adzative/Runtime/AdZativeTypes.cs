@@ -18,7 +18,7 @@ namespace Base.Ads
     public enum AdZativeSourcePolicy { Priority, Fallback, RoundRobin }
 
     /// <summary>
-    /// Built-in layout of the format, or a custom Android layout name. Built-ins: banner zen_banner (portrait +
+    /// Built-in layout of the format, or a custom layout name (Android xml / iOS xib). Built-ins: banner zen_banner (portrait +
     /// landscape), MREC zen_mrec, app open zen_appopen (one style each); interstitial and rewarded:
     /// Style1 = zen_inter_media_top, Style2 = zen_inter_media_center. A style the format doesn't have = Style1.
     /// </summary>
@@ -40,6 +40,14 @@ namespace Base.Ads
 
     /// <summary>Fit keeps the whole creative visible (Meta forbids cropping); Crop fills the box (A/B only).</summary>
     public enum AdZativeMediaScale { Fit, Crop }
+
+    /// <summary>
+    /// Full-screen ✕ / Next buttons (AdZativeSDK.SetFullscreenButtons). Auto: the timing rules (closeAfterSec, countdown,
+    /// video end). Show: visible and tappable at once (Next only while the pod has a next ad; app open: the "Continue to
+    /// app" bar). Hide: never shown and the Back key is blocked: the game uses CloseFullscreen / NextFullscreen.
+    /// Locked: shown but taps and Back do nothing ("close_blocked" / "next_blocked").
+    /// </summary>
+    public enum AdZativeButtonMode { Auto, Show, Hide, Locked }
 
     /// <summary>What the loaded ad contains (from the native layer's classification).</summary>
     public enum AdZativeMediaType { None, Image, Video }
@@ -68,6 +76,13 @@ namespace Base.Ads
         public int podRatio = 2;
         [UnityEngine.Tooltip("Countdown chip (\"5s\") on the ad.")]
         public bool showCountdown = true;
+        [UnityEngine.Tooltip("Unity-driven: the countdown chip is dimmed (Dimmed Alpha) for this many seconds of each ad, then fully shown. 0 = off.")]
+        public int countdownDimmedSec = 0;
+        [UnityEngine.Tooltip("Unity-driven, only while this player's CTR of the ad unit ID is at or below AdConfig.adCtrMin (AdCtr): when ✕ (app open: \"Continue\") or \"Next ›\" appears it stays dimmed and locked this many seconds: taps and Back are ignored (events close_blocked / next_blocked). 0 = off.")]
+        public int closeLockedSec = 0;
+        [UnityEngine.Tooltip("Alpha of the dimmed countdown chip and of the locked ✕.")]
+        [UnityEngine.Range(0f, 1f)]
+        public float dimmedAlpha = 0.4f;
 
         public AdZativeTiming Clone() => (AdZativeTiming)MemberwiseClone();
     }
@@ -81,7 +96,7 @@ namespace Base.Ads
         public List<string> adUnitIds = new List<string> { AdZativeTestIds.NativeVideo };
         public AdZativeSourcePolicy sourcePolicy = AdZativeSourcePolicy.Fallback;
         public AdZativeLayoutStyle layoutStyle = AdZativeLayoutStyle.Style1;
-        public string customLayout = "";            // Android layout name when layoutStyle == Custom
+        public string customLayout = "";            // layout name when layoutStyle == Custom (Android xml / iOS xib)
 
         public int cacheSize = 1;                   // ads kept ready per ID (1..3)
         public int ttlSec = 3300;                   // AdMob & Meta ads expire at 60 min: drop them at 55
@@ -111,6 +126,9 @@ namespace Base.Ads
         /// <summary>Host-driven loading: no automatic preload / refill; ads load only via AdZativeSDK.LoadUnit
         /// (used when the host app runs its own waterfall, e.g. zen-unity Base).</summary>
         public bool manualLoad = false;
+
+        /// <summary>Inline: top margin (dp) of the layout's ad_container view (e.g. Base adBannerOffset); &lt; 0 keeps the layout's own.</summary>
+        public int containerMarginTopDp = -1;
 
         /// <summary>Built-in layouts of a format (style 1..n), same list as AdFormat on the Android side.</summary>
         public static string[] BuiltInLayouts(AdZativeFormat f)
@@ -157,11 +175,10 @@ namespace Base.Ads
                 mediaAspectRatio = mediaAspectRatio, refreshSec = refreshSec, minDisplaySec = minDisplaySec,
                 waitVideoEnd = waitVideoEnd, preloadWhenHidden = preloadWhenHidden,
                 imageFirstSec = timing.imageFirstSec, imageNextSec = timing.imageNextSec, closeAfterSec = timing.closeAfterSec,
-                videoMaxSec = timing.videoMaxSec, podRatio = timing.podRatio, showCountdown = timing.showCountdown,
-                autoShowOnForeground = autoShowOnForeground, minIntervalSec = minIntervalSec,
+                videoMaxSec = timing.videoMaxSec, podRatio = timing.podRatio, showCountdown = timing.showCountdown,                autoShowOnForeground = autoShowOnForeground, minIntervalSec = minIntervalSec,
                 podSize = podSize, podCloseOnEveryAd = podCloseOnEveryAd, videoMode = videoMode.ToString().ToUpperInvariant(),
                 layoutMode = layoutMode.ToString().ToUpperInvariant(), mediaScale = mediaScale.ToString().ToUpperInvariant(),
-                manualLoad = manualLoad
+                manualLoad = manualLoad, containerMarginTopDp = containerMarginTopDp
             };
             string json = UnityEngine.JsonUtility.ToJson(dto);
             if (!string.IsNullOrEmpty(adChoicesPlacement))
@@ -175,8 +192,7 @@ namespace Base.Ads
             public string slotId, format, sourcePolicy, layout, mediaAspectRatio, videoMode, layoutMode, mediaScale;
             public List<string> adUnitIds;
             public bool startMuted, waitVideoEnd, preloadWhenHidden, autoShowOnForeground, podCloseOnEveryAd, manualLoad, showCountdown;
-            public int cacheSize, ttlSec, refreshSec, minDisplaySec, imageFirstSec, imageNextSec, closeAfterSec, videoMaxSec, podRatio, minIntervalSec, podSize;
-        }
+            public int cacheSize, ttlSec, refreshSec, minDisplaySec, imageFirstSec, imageNextSec, closeAfterSec, videoMaxSec, podRatio, minIntervalSec, podSize, containerMarginTopDp;        }
     }
 
     /// <summary>Google's public test IDs. Never ship them; never test with production IDs.</summary>
@@ -185,6 +201,8 @@ namespace Base.Ads
         public const string AndroidAppId = "ca-app-pub-3940256099942544~3347511713";
         public const string Native = "ca-app-pub-3940256099942544/2247696110";
         public const string NativeVideo = "ca-app-pub-3940256099942544/1044960115";
+        public const string IosNative = "ca-app-pub-3940256099942544/3986624511";
+        public const string IosNativeVideo = "ca-app-pub-3940256099942544/2521693316";
     }
 
     /// <summary>Superset of every payload field the native layer sends (JsonUtility-friendly).</summary>

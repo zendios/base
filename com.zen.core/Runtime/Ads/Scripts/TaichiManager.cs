@@ -281,9 +281,7 @@ namespace Base.Ads
         /// </summary>
         public void ProcessAdRevenue(double revenueInUSD, string currencyCode, double lifeTimeValue)
         {
-            // Logs basic ad impression to build global baseline statistics
-            LogBaseImpression(revenueInUSD, currencyCode, lifeTimeValue);
-
+            // The base "ad_impression_revenue" event is sent by AdBase.LogImpressionData on the SDK thread.
             if (_runtimeStates.Count == 0)
             {
                 return;
@@ -341,16 +339,6 @@ namespace Base.Ads
             _isDataDirty = true;
         }
 
-        private void LogBaseImpression(double revenue, string currencyCode, double lifeTimeValue)
-        {
-            // Simple allocation-free struct setup for base logging
-            ZenAnalytics.LogEventExact("ad_impression_revenue", new Dictionary<string, object>
-            {
-                { "value", revenue },
-                { "currency", currencyCode },
-                { "life_time_value", lifeTimeValue }
-            });
-        }
 
         private void LogTaichiConversion(string eventName, double value, string currency, int tierPercent, double lifeTimeValue)
         {

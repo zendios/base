@@ -26,7 +26,7 @@ using UnityEngine.Serialization;
 ///  - layouts zen_banner (Native Banner, portrait + landscape), zen_mrec, zen_inter_media_top / _center
 ///    (interstitial + rewarded), zen_appopen, or a custom one; Manual / Auto layout, VideoMode
 ///    (Allow / Gate / Block), media aspect / scale, pods (N interstitial / rewarded ads in a row).
-/// iOS: not supported yet (the plugin is Android only) - loads answer LoadNotAvailable at once.
+/// Android and iOS (the iOS plugin mirrors the Android one); other platforms answer LoadNotAvailable at once.
 /// </summary>
 public class AdZative : AdmobBase
 {
@@ -34,7 +34,7 @@ public class AdZative : AdmobBase
     [Header("Layout")]
     [Tooltip("Built-in style of the format (interstitial / rewarded: 1 = media top, 2 = media center; banner, MREC, app open: 1), or Custom (customLayout).")]
     [SerializeField] private AdZativeLayoutStyle layoutStyle = AdZativeLayoutStyle.Style1;
-    [Tooltip("Android layout name when Layout Style = Custom (must contain ad_native_view, ad_headline, ad_attribution, ad_media for MREC / full-screen).")]
+    [Tooltip("Layout name when Layout Style = Custom: Android xml / iOS xib (must contain ad_native_view, ad_headline, ad_attribution, ad_media for MREC / full-screen).")]
     [FormerlySerializedAs("layoutName")]
     [SerializeField] private string customLayout = "";
     [Tooltip("Auto: the plugin picks the built-in style that shows the most assets of each ad (layoutStyle = fallback).")]
@@ -44,7 +44,6 @@ public class AdZative : AdmobBase
     [Tooltip("Allow: video plays in the MediaView. Block: video ads are rejected (banner strips). Gate (inline): the game decides via OnVideoGate.")]
     [SerializeField] private AdZativeVideoMode videoMode = AdZativeVideoMode.Allow;
     [SerializeField] private MediaAspectRatio desiredAspectRatio = MediaAspectRatio.ANY;
-    [SerializeField] private ImageScaleType desiredScaleType = ImageScaleType.FIT_CENTER;
     [Tooltip("Legacy prefab value: true = no video (VideoMode.Block).")]
     [SerializeField, HideInInspector] private bool forceImage = false;
 
@@ -70,11 +69,17 @@ public class AdZative : AdmobBase
     [Header("Banner Strip (reserved area + game UI shift)")]
     [SerializeField] protected GameObject background;
     [SerializeField] protected RectTransform backgroundRect;
-    [SerializeField] protected int offsetTop = 20;
+    [Tooltip("Canvas units of Offset Top Dp (set from AdConfig.adBannerOffset).")]
+    [SerializeField] protected float offsetTop = 20;
+    [Tooltip("Gap (dp) between the game UI and the ad: top margin of the native ad_container.")]
     [SerializeField] protected int offsetTopDp = 10;
-    [SerializeField] protected int size = 64;
+    [Tooltip("Canvas units of Size Dp.")]
+    [SerializeField] protected float size = 64;
+    [Tooltip("Height (dp) of the ad shown on screen; the strip under it has this height.")]
     [SerializeField] protected int sizeDp = 32;
-    [SerializeField] protected int sizeRequest = 240;
+    [Tooltip("Canvas units of Size Request Dp.")]
+    [SerializeField] protected float sizeRequest = 240;
+    [Tooltip("Height (dp) of the native ad_container; above Size Dp, the rest lies below the screen edge.")]
     [SerializeField] protected int sizeRequestDp = 120;
     [SerializeField] protected List<RectTransform> rootRectTransform;
     #endregion
@@ -84,7 +89,6 @@ public class AdZative : AdmobBase
     public const int MinInlineReloadSec = 30;
 
     public enum MediaAspectRatio { ANY = 1, LANDSCAPE = 2, PORTRAIT = 3, SQUARE = 4 }
-    public enum ImageScaleType { FIT_CENTER = 0, CENTER_INSIDE = 1, CENTER_CROP = 2 }
 
     public override bool isCanShow { get; set; }
 
@@ -100,15 +104,20 @@ public class AdZative : AdmobBase
     public AdZativeLayoutMode LayoutMode => layoutMode;
     public AdZativeVideoMode VideoMode => EffectiveVideoMode;
 
-    private static bool IsSupportedPlatform => Application.platform == RuntimePlatform.Android;
+    private static bool IsSupportedPlatform => Application.platform == RuntimePlatform.Android || IsIos;
+    private static bool IsIos => Application.platform == RuntimePlatform.IPhonePlayer;
     private static bool IsEditor => Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.OSXEditor;
 
     private bool IsFullscreenType => type == AdType.Inter || type == AdType.RewardInter || type == AdType.AppOpen || type == AdType.Reward;
     private bool IsInline => !IsFullscreenType;
     /// <summary>App open loads only when a show is requested (Base rule): no plugin preload.</summary>
     private bool Preloads => type != AdType.AppOpen;
-    /// <summary>Banner = Native Banner (no MediaView): video ads are never shown in it.</summary>
-    private AdZativeVideoMode EffectiveVideoMode => type == AdType.Banner || forceImage ? AdZativeVideoMode.Block : videoMode;
+    /// <summary>
+    /// Banner = Native Banner: zen_banner has no MediaView, so video ads are blocked; a Custom banner layout with a
+    /// MediaView (e.g. zen_banner_media) follows Video Mode.
+    /// </summary>
+    private AdZativeVideoMode EffectiveVideoMode =>
+        forceImage || (type == AdType.Banner && layoutStyle != AdZativeLayoutStyle.Custom) ? AdZativeVideoMode.Block : videoMode;
     #endregion
 
     #region Private Fields
@@ -121,6 +130,8 @@ public class AdZative : AdmobBase
     private string slotId;             // read on the Android callback thread (OnPaidRaw)
     private Rect lastRect;
     private int rectFrame;
+    private int screenWidth;
+    private int screenHeight;
     private readonly Vector3[] _cachedCorners = new Vector3[4];
     #endregion
 
@@ -173,13 +184,15 @@ public class AdZative : AdmobBase
 
             _scaleFactor = canvas.scaleFactor;
             offsetTopDp = config.adBannerOffset;
-            offsetTop = (int)DpToCanvasUnits(offsetTopDp);
-            size = (int)DpToCanvasUnits(sizeDp);
-            sizeRequest = (int)DpToCanvasUnits(sizeRequestDp);
+            offsetTop = DpToCanvasUnits(offsetTopDp);
+            size = DpToCanvasUnits(sizeDp);
+            sizeRequest = DpToCanvasUnits(sizeRequestDp);
+            // This rect is the native view (AdArea): the offset gap (top margin of ad_container, see EnsureSlot) + the
+            // requested ad. Its top is size + offset above the screen bottom, so only the top `size` of the ad is on
+            // screen; a bigger request lies below the edge.
             RectTransform rectTransform = transform.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(0, sizeRequest);
-            rectTransform.anchoredPosition = new Vector2(0, -(sizeRequest - size - offsetTop));
-            Log($"UpdateConfig offsetTop {offsetTopDp}->{offsetTop}, size {sizeDp}->{size}, sizeRequest {sizeRequestDp}->{sizeRequest}");
+            rectTransform.sizeDelta = new Vector2(0, sizeRequest + offsetTop);
+            rectTransform.anchoredPosition = new Vector2(0, size - sizeRequest);
         }
 
         if (backgroundRect == null && background != null)
@@ -187,6 +200,10 @@ public class AdZative : AdmobBase
 
         if (backgroundRect != null)
         {
+            // The strip lies exactly under the visible ad: below the gap, `size` high, down to the screen bottom.
+            backgroundRect.anchorMin = new Vector2(0, 1);
+            backgroundRect.anchorMax = Vector2.one;
+            backgroundRect.pivot = new Vector2(0.5f, 1);
             backgroundRect.sizeDelta = new Vector2(0, size);
             backgroundRect.anchoredPosition = new Vector2(0, -offsetTop);
         }
@@ -194,7 +211,7 @@ public class AdZative : AdmobBase
         foreach (RectTransform rectTransform in rootRectTransform)
         {
             if (rectTransform != null)
-                rectTransform.offsetMin = new Vector2(0, size);
+                rectTransform.offsetMin = new Vector2(0, size + offsetTop);
         }
     }
 
@@ -246,7 +263,7 @@ public class AdZative : AdmobBase
         {
             foreach (RectTransform rectTransform in rootRectTransform)
                 if (rectTransform != null)
-                    rectTransform.offsetMin = new Vector2(0, size);
+                    rectTransform.offsetMin = new Vector2(0, size + offsetTop);
         }
         gameObject.SetActive(!isVip);
     }
@@ -300,6 +317,14 @@ public class AdZative : AdmobBase
     /// <summary>The ad area can move (banner offset from Remote Config, layout / orientation changes): keep the ad on it.</summary>
     private void LateUpdate()
     {
+        // Fold (cover / inner screen), rotation: new canvas scale, so the strip is sized again.
+        if (type == AdType.Banner && isInitialized && (Screen.width != screenWidth || Screen.height != screenHeight))
+        {
+            screenWidth = Screen.width;
+            screenHeight = Screen.height;
+            UpdateConfig();
+        }
+
         if (!inlineVisible || AdArea == null || ++rectFrame % 5 != 0)
             return;
         if (TryGetNormalizedRect(out var r) && !Approximately(r, lastRect))
@@ -331,7 +356,7 @@ public class AdZative : AdmobBase
     {
         if (!IsSupportedPlatform && !IsEditor)
         {
-            // iOS / other platforms: no native engine yet. Answer at once so AdFlow "Both" falls back to AdMob.
+            // Other platforms: no native engine. Answer at once so AdFlow "Both" falls back to AdMob.
             result?.Invoke(type, AdState.LoadNotAvailable);
             yield break;
         }
@@ -736,18 +761,18 @@ public class AdZative : AdmobBase
     /// Ad unit IDs of the slot, in waterfall order. Test mode (AdsManager.UseIdTest): Google's native test IDs only -
     /// never a production ID, also for the plugin's preloading.
     /// </summary>
-    private const string TestIdImage = "ca-app-pub-3940256099942544/2247696110";   // Google native (image) test ID
-    private const string TestIdVideo = "ca-app-pub-3940256099942544/1044960115";   // Google native video test ID
+    private static string TestIdImage => IsIos ? AdZativeTestIds.IosNative : AdZativeTestIds.Native;   // Google native (image) test ID
+    private static string TestIdVideo => IsIos ? AdZativeTestIds.IosNativeVideo : AdZativeTestIds.NativeVideo;   // Google native video test ID
 
     /// <summary>Image test ID: every native placement can show it (an inline slot blocks video).</summary>
-    protected override string FallbackTestId =>
-        Application.platform == RuntimePlatform.IPhonePlayer ? "ca-app-pub-3940256099942544/3986624511" : TestIdImage;
+    protected override string FallbackTestId => TestIdImage;
 
     private List<string> SlotAdUnitIds()
     {
         if (AdsManager.UseIdTest)
         {
-            return EffectiveVideoMode == AdZativeVideoMode.Block ? new List<string> { TestIdImage } : new List<string> { TestIdImage, TestIdVideo };
+            // Video first: the waterfall uses the next ID only when one fails, and the image test ID always fills.
+            return EffectiveVideoMode == AdZativeVideoMode.Block ? new List<string> { TestIdImage } : new List<string> { TestIdVideo, TestIdImage };
         }
         var ids = idList.Where(x => !string.IsNullOrEmpty(x)).ToList();
         if (ids.Count == 0 && !string.IsNullOrEmpty(id)) ids.Add(id);
@@ -757,6 +782,11 @@ public class AdZative : AdmobBase
     private void EnsureSlot()
     {
         if (slotRegistered) return;
+        if (config != null)
+        {
+            AdCtr.Min = config.adCtrMin;   // also set by AdConfigRemote after a fetch
+            AdCtr.Max = config.adCtrMax;
+        }
         var cfg = new AdZativeSlotConfig
         {
             slotId = placementName,
@@ -772,9 +802,11 @@ public class AdZative : AdmobBase
             layoutMode = layoutMode,
             videoMode = IsInline ? EffectiveVideoMode : AdZativeVideoMode.Allow,
             mediaAspectRatio = desiredAspectRatio.ToString(),
-            mediaScale = desiredScaleType == ImageScaleType.CENTER_CROP ? AdZativeMediaScale.Crop : AdZativeMediaScale.Fit,
+            // Crop fills the media box everywhere; AdConfig.forceMediaScaleMeta keeps the whole image (Meta rule).
+            mediaScale = config != null && config.forceMediaScaleMeta ? AdZativeMediaScale.Fit : AdZativeMediaScale.Crop,
             timing = timing.Clone(),
             podSize = type == AdType.Inter || type == AdType.RewardInter || type == AdType.Reward ? podSize : 1,
+            containerMarginTopDp = type == AdType.Banner ? offsetTopDp : -1,   // adBannerOffset: gap above the ad
         };
         AdZativeSDK.RegisterSlot(cfg);
         slotRegistered = true;
@@ -783,10 +815,10 @@ public class AdZative : AdmobBase
 
     #region Ad area (Canvas rect)
     /// <summary>
-    /// Screen area of the ad. Banner: the reserved strip (backgroundRect), because the banner placeholder covers the
-    /// whole screen. MREC: the placeholder.
+    /// Screen area of the ad. Banner: this rect (the adBannerOffset gap + sizeRequest, partly below the screen).
+    /// MREC: the placeholder.
     /// </summary>
-    private RectTransform AdArea => type == AdType.Banner && backgroundRect != null ? backgroundRect : placeholder;
+    private RectTransform AdArea => type == AdType.Banner ? (RectTransform)transform : placeholder;
 
     /// <summary>AdArea -> normalised screen rect (0..1, origin top-left) through this ad's UI camera (null for Overlay).</summary>
     private bool TryGetNormalizedRect(out Rect result, bool log = false)
@@ -844,7 +876,7 @@ public class AdZative : AdmobBase
     /// </summary>
     public float DpToCanvasUnits(float dp)
     {
-        float targetPixels = dp * physicDpi;
+        float targetPixels = Mathf.Round(dp * physicDpi);   // Android rounds dp to whole pixels (Math.round)
 
         if (Mathf.Approximately(_scaleFactor, 0f))
             _scaleFactor = 1f;
@@ -857,15 +889,28 @@ public class AdZative : AdmobBase
         return unit;
     }
 
+    /// <summary>
+    /// Pixels per dp. Android: DisplayMetrics.density, the scale the native views use (it follows the display size
+    /// setting); Screen.dpi is the panel's physical dpi and differs from it (Fold 7: 422 dpi, density 2.25).
+    /// iOS: Unity pixels per point (the native layouts' unit), from the plugin.
+    /// </summary>
     public float physicDpi
     {
         get
         {
-            float dpi = Screen.dpi > 0 ? Screen.dpi : 160f;
-#if UNITY_EDITOR
-            dpi = 160f;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (var activity = player.GetStatic<AndroidJavaObject>("currentActivity"))
+            using (var resources = activity.Call<AndroidJavaObject>("getResources"))
+            using (var metrics = resources.Call<AndroidJavaObject>("getDisplayMetrics"))
+                return metrics.Get<float>("density");
+#elif UNITY_IOS && !UNITY_EDITOR
+            return AdZativeSDK.IosPointScale;
+#elif UNITY_EDITOR
+            return 1f;
+#else
+            return (Screen.dpi > 0 ? Screen.dpi : 160f) / 160f;
 #endif
-            return dpi / 160f;
         }
     }
     #endregion
@@ -952,6 +997,14 @@ public class AdZative : AdmobBase
                 HandleAdClosed();
                 break;
             case "show_failed":
+                // Inline slot whose ad was taken by another slot sharing the ad unit (pools are per ad unit, e.g. banner
+                // and MREC on the same test ID): the plugin keeps the slot waiting and shows the next ad itself
+                // ("shown"). Destroying the slot here left the banner empty for good.
+                if (IsInline && p?.reason == "not_ready" && (state == AdState.ShowRequest || state == AdState.LoadAvailable))
+                {
+                    Log("Show: no ad left in the shared pool, the slot shows the next one when it loads");
+                    break;
+                }
                 if (state == AdState.ShowRequest || state == AdState.Show || state == AdState.LoadAvailable)
                 {
                     inlineVisible = false;

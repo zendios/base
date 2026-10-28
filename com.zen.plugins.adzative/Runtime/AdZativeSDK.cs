@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Base.Ads
 {
     /// <summary>
-    /// Unified Unity API for Zen native ads (Android today; iOS plugs in behind the same bridge).
+    /// Unified Unity API for Zen native ads (Android and iOS, behind the same bridge).
     ///
     /// Model: a SLOT is one display position (Canvas rect or anchor) with its own layout and a LIST of
     /// ad unit IDs. Slots draw ads from shared per-ID caches, so the next ad is always preloaded — from the
@@ -30,12 +30,13 @@ namespace Base.Ads
         /// <summary>(slotId, adUnitId, valueMicros, currency, precision) — impression-level revenue.</summary>
         public static event Action<string, string, long, string, string> OnPaid;
         /// <summary>
-        /// (slotId, payloadJson) of every "paid" event, raised on the ANDROID CALLBACK THREAD before the main-thread
-        /// hop, so impression-level revenue can be forwarded at once (Google: keep ILAR outside the Update queue).
+        /// (slotId, payloadJson) of every "paid" event, raised on the NATIVE CALLBACK THREAD (Android UI thread, iOS main
+        /// thread) before the main-thread queue, so impression-level revenue can be forwarded at once (Google: keep ILAR
+        /// outside the Update queue).
         /// Handlers must not touch Unity APIs. Payload: ad_unit, value_micros, currency, precision, network.
         /// </summary>
         public static event Action<string, string> OnPaidRaw;
-        /// <summary>Pixel rect (origin top-left) of a visible inline slot as laid out on Android.</summary>
+        /// <summary>Unity screen pixel rect (origin top-left) of a visible inline slot as laid out natively.</summary>
         public static event Action<string, RectInt> OnInlineLayout;
         /// <summary>(slotId, info): the ad this slot will show next is loaded — media type, video length, assets, network.</summary>
         public static event Action<string, AdZativeAdInfo> OnAdReady;
@@ -46,10 +47,25 @@ namespace Base.Ads
         public static event Action<string, AdZativeAdInfo> OnVideoGate;
         public static event Action<string> OnFullscreenOpened;
         public static event Action<string> OnFullscreenClosed;
+        /// <summary>(slotId, trigger "button" / "back"): a tap on a locked ✕ (AdZativeButtonMode.Locked).</summary>
+        public static event Action<string, string> OnCloseBlocked;
 
         public static bool IsInitialized { get; private set; }
         public static bool IsFullscreenShowing { get; private set; }
         public static AdZativeSettings Settings { get; private set; }
+
+        /// <summary>iOS: Unity screen pixels per point, the unit of the native layouts (Android dp). 1 elsewhere.</summary>
+        public static float IosPointScale
+        {
+            get
+            {
+#if UNITY_IOS && !UNITY_EDITOR
+                return IOSAdZativeBridge.GetScale();
+#else
+                return 1f;
+#endif
+            }
+        }
 
         private static IAdZativeBridge _bridge;
         private static readonly Dictionary<string, AdZativeSlotConfig> Slots = new Dictionary<string, AdZativeSlotConfig>();
@@ -75,6 +91,8 @@ namespace Base.Ads
             AdZativeMainThread.Ensure();
 #if UNITY_ANDROID && !UNITY_EDITOR
             _bridge = new AndroidAdZativeBridge();
+#elif UNITY_IOS && !UNITY_EDITOR
+            _bridge = new IOSAdZativeBridge();   // app ID: iOS reads GADApplicationIdentifier from Info.plist
 #else
             _bridge = new EditorAdZativeBridge();
 #endif
@@ -106,8 +124,11 @@ namespace Base.Ads
                 int n = Mathf.Max(1, c.adUnitIds.Count);
                 c.adUnitIds.Clear();
                 bool video = c.format != AdZativeFormat.BANNER;
+                bool ios = Application.platform == RuntimePlatform.IPhonePlayer;
+                string nativeVideo = ios ? AdZativeTestIds.IosNativeVideo : AdZativeTestIds.NativeVideo;
+                string native = ios ? AdZativeTestIds.IosNative : AdZativeTestIds.Native;
                 for (int i = 0; i < n; i++)
-                    c.adUnitIds.Add((i % 2 == 0) == video ? AdZativeTestIds.NativeVideo : AdZativeTestIds.Native);
+                    c.adUnitIds.Add((i % 2 == 0) == video ? nativeVideo : native);
             }
             Slots[c.slotId] = c;
             _bridge.ConfigureSlot(c.ToJson());
@@ -281,7 +302,39 @@ namespace Base.Ads
             _bridge.ShowFullscreen(slotId, podSize);   // "show_failed" / "closed" completes the callback
         }
 
+        /// <summary>Closes the full-screen ad now ("closed"); rewarded: no "reward_skipped", reward only if already earned.</summary>
         public static void CloseFullscreen() { if (IsInitialized) _bridge.CloseFullscreen(); }
+
+        /// <summary>
+        /// ✕ / Next of a full-screen slot, for the ad on screen and every later show, until RegisterSlot replaces the slot
+        /// (back to Auto). The Back key follows the buttons. Rewarded: ✕ on Show leaves early ("reward_skipped").
+        /// </summary>
+        public static void SetFullscreenButtons(string slotId, AdZativeButtonMode close, AdZativeButtonMode next)
+        {
+            if (IsInitialized)
+                _bridge.SetFullscreenButtons(slotId, close.ToString().ToUpperInvariant(), next.ToString().ToUpperInvariant());
+        }
+
+        /// <summary>
+        /// Next ad of the pod on screen now, whatever the countdown or buttons: "pod_next" (trigger "host"), or
+        /// "next_ignored" (reason "no_fullscreen" / "last_ad").
+        /// </summary>
+        public static void NextFullscreen() { if (IsInitialized) _bridge.NextFullscreen(); }
+
+        /// <summary>
+        /// Countdown chip of a full-screen slot drawn by the game: secondsLeft >= 1 shows "Ns" at alpha (chip and its
+        /// background), 0 hides it, -1 gives it back to the native countdown. Kept until RegisterSlot replaces the slot.
+        /// </summary>
+        public static void SetFullscreenCountdown(string slotId, int secondsLeft, float alpha)
+        {
+            if (IsInitialized) _bridge.SetFullscreenCountdown(slotId, secondsLeft, Mathf.Clamp01(alpha));
+        }
+
+        /// <summary>Alpha of ✕ (app open: the "Continue" bar) and "Next ›" of a full-screen slot, 1 = default.</summary>
+        public static void SetFullscreenButtonAlpha(string slotId, float closeAlpha, float nextAlpha)
+        {
+            if (IsInitialized) _bridge.SetFullscreenButtonAlpha(slotId, Mathf.Clamp01(closeAlpha), Mathf.Clamp01(nextAlpha));
+        }
 
         // ------------------------------------------------------------------ app open control
 
@@ -317,7 +370,21 @@ namespace Base.Ads
                     EnterFullscreenMode();
                     OnFullscreenOpened?.Invoke(e.SlotId);
                     break;
+                case "shown":
+                    if (Slots.TryGetValue(e.SlotId, out var shownSlot) && shownSlot.IsFullscreen && AdZativeCloseTimer.IsUsedBy(shownSlot.timing))
+                    {
+                        bool isLast = p.pod_index >= p.pod_size - 1;
+                        AdZativeCloseTimer.Begin(e.SlotId, shownSlot.timing, p.ad_unit, p.watch_sec, isLast, isLast || shownSlot.podCloseOnEveryAd);
+                    }
+                    break;
+                case "clicked":
+                    AdZativeCloseTimer.OnClicked(e.SlotId);
+                    break;
+                case "close_blocked":
+                    OnCloseBlocked?.Invoke(e.SlotId, p.trigger);
+                    break;
                 case "fullscreen_closed":
+                    AdZativeCloseTimer.End();
                     IsFullscreenShowing = false;
                     ExitFullscreenMode();
                     OnFullscreenClosed?.Invoke(e.SlotId);
@@ -337,6 +404,7 @@ namespace Base.Ads
                 case "show_failed":
                     Complete(e.SlotId, false);
                     break;
+                case "next_ignored":
                 case "layout_invalid":
                 case "media_too_small":
                 case "config_error":

@@ -78,6 +78,12 @@ namespace Base.Ads
                     Log($"{_state} -> {value} item: {item}");
                     _state = value;
 
+                    // CTR per ad unit ID (AdCtr), counted before the state is logged with ad_ctr.
+                    if (_state == AdState.Show)
+                        AdCtr.RecordShow(id);
+                    else if (_state == AdState.Click)
+                        AdCtr.RecordClick(id);
+
                     if (_state == AdState.LoadAvailable || _state == AdState.LoadTimeOut || _state == AdState.LoadNotAvailable
                         || _state == AdState.ShowSuccess || _state == AdState.ShowFailed || _state == AdState.ShowNotAvailable
                         || _state == AdState.Close || _state == AdState.NotTime)
@@ -694,6 +700,15 @@ namespace Base.Ads
                 catch (Exception ex) { Debug.LogException(ex); }
 #endif
 
+                // Firebase revenue at once too: on the main-thread queue it waited while the app was in the background
+                // and was lost when the app was closed meanwhile (Firebase below AppsFlyer). LogEventExact uses no Unity API.
+                ZenAnalytics.LogEventExact("ad_impression_revenue", new Dictionary<string, object>
+                {
+                    { "value", rev },
+                    { "currency", cur },
+                    { "life_time_value", (userData != null ? userData.lifeTimeValue : 0d) + rev },
+                });
+
                 // Unity-side bookkeeping (user data, Taichi PlayerPrefs / Firebase, logs) stays on the main thread.
                 UnityMainThreadDispatcher.Enqueue(() =>
                 {
@@ -735,6 +750,7 @@ namespace Base.Ads
                 parameter["level"] = userData.currentLevel;
                 parameter["login_day"] = userData.loginDay;
             }
+            parameter["ad_ctr"] = Math.Round(AdCtr.Get(id), 3);
             return parameter;
         }
         #endregion

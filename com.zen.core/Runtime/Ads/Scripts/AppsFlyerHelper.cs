@@ -7,6 +7,9 @@ using Base.Ads;
 #if UNITY_IOS
 using Unity.Advertisement.IosSupport;
 #endif
+#if APPSFLYER_TOO_OLD
+#error Base needs AppsFlyer 7.0.0 or newer: Base > Hub > Setup, AppsFlyer row, "Use 7.0.3".
+#endif
 #if !USE_APPSFLYER
 public class AppsFlyerHelper : MonoBehaviour
 {
@@ -56,8 +59,6 @@ public class AppsFlyerHelper : MonoBehaviour, IAppsFlyerConversionData
     {
         instance = this;
 
-        AppsFlyer.waitForATTUserAuthorizationWithTimeoutInterval(60);
-
 #if USE_FIREBASE_MESSAGE && USE_APPSFLYER && UNITY_ANDROID
         Firebase.Messaging.FirebaseMessaging.TokenReceived += OnTokenReceived;
 #endif
@@ -77,12 +78,10 @@ public class AppsFlyerHelper : MonoBehaviour, IAppsFlyerConversionData
                     yield break;
                 }
 
-                AppsFlyer.setIsDebug(DebugMode.IsOn);
-                AppsFlyer.initSDK(DevKey, AppID, instance.getConversionData ? instance : null);
-                AppsFlyer.startSDK();
+                InitAndStart();
 
                 if (DebugMode.IsOn)
-                    Debug.Log($"{TAG} setIsDebug {DebugMode.IsOn} initSDK {DevKey} {AppID} startSDK...");
+                    Debug.Log($"{TAG} enableDebug {DebugMode.IsOn} init {DevKey} {AppID} start...");
             }
             catch (Exception ex)
             {
@@ -92,15 +91,15 @@ public class AppsFlyerHelper : MonoBehaviour, IAppsFlyerConversionData
             if (instance.getConversionData && instance.waitInitDone)
             {
                 float elapseTime = 0;
-                while (IsInitialized == false && elapseTime >= 2.5f)
+                while (IsInitialized == false && elapseTime < 2.5f)
                 {
                     yield return null;
-                    elapseTime -= Time.unscaledDeltaTime;
+                    elapseTime += Time.unscaledDeltaTime;
                 }
 
                 if (IsInitialized)
                 {
-                    Debug.Log($"{TAG} init an callback in {elapseTime:#00}");
+                    Debug.Log($"{TAG} init an callback in {elapseTime:0.0}s");
                 }
             }
             else
@@ -112,6 +111,21 @@ public class AppsFlyerHelper : MonoBehaviour, IAppsFlyerConversionData
         {
             IsInitialized = true;
             throw new Exception($"{TAG} instance is null. Make sure the AppsFlyerHelper prefab is in the first scene and not destroyed on load.");
+        }
+    }
+
+    /// <summary>AppsFlyer 7.x: enableDebug, init and start are Awaitable, run in sequence.</summary>
+    private static async void InitAndStart()
+    {
+        try
+        {
+            await AppsFlyer.enableDebug(DebugMode.IsOn);
+            await AppsFlyer.init(DevKey, AppID, instance.getConversionData ? instance : null);
+            await AppsFlyer.start();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
         }
     }
 
