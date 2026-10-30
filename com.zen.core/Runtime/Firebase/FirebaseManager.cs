@@ -818,8 +818,24 @@ namespace Base
                                         string lose_by = null,
                                         string action_seq = null)
         {
+            LogLevel(state, "level_" + level.ToString("#000000"), level, mode, play_type, total_play, total_lose,
+                duration_play, item_cleared, duration_total, item_total, player_rank, lose_by, action_seq);
+        }
+
+        /// <summary>
+        /// Level event for a level with a text id (community level, level made in the Editor): level_name is
+        /// <paramref name="levelId"/> as given, level is <paramref name="levelIndex"/> (0 when the level has no number).
+        /// </summary>
+        public static void LogLevel(GameState state, string levelId, int levelIndex, Enum mode, PlayType play_type,
+                                        int total_play, int total_lose,
+                                        float duration_play = 0, int item_cleared = 0,
+                                        float duration_total = 0, int item_total = 0,
+                                        int player_rank = 0,
+                                        string lose_by = null,
+                                        string action_seq = null)
+        {
 #if USE_FIREBASE
-            var parameter = levelParameter(level, mode, play_type, total_play, total_lose, duration_total, item_total);
+            var parameter = levelParameter(levelIndex, levelId, mode, play_type, total_play, total_lose, duration_total, item_total);
             if (state != GameState.None)
                 parameter = parameter.Append(new Parameter("state", state.RegexToId())).ToArray();
 
@@ -841,8 +857,8 @@ namespace Base
             if (!string.IsNullOrEmpty(action_seq))
                 parameter = parameter.Append(new Parameter("action_seq", action_seq)).ToArray();
 
-            if (state == GameState.Play && userData != null)
-                userData.currentLevel = level;
+            if (state == GameState.Play && userData != null && levelIndex > 0)
+                userData.currentLevel = levelIndex;
 
             LogEvent("level_" + state.RegexToId(), parameter);
 #endif
@@ -850,24 +866,24 @@ namespace Base
 
 #if USE_FIREBASE
         /// <param name="level">Level mà user chơi là level bao nhiêu</param>
+        /// <param name="levelName">level_name: id của level</param>
         /// <param name="mode">Mode chơi của level là gì: enum GameMode của game (Base không có GameMode)</param>
         /// <param name="play_type">User chơi level này trong hoàn cảnh nào</param>
         /// <param name="play_index">User chơi level này lần thứ mấy</param>
         /// <param name="lose_index">User đã thua level này mấy lần (trước khi bắt đầu lần chơi này)</param>
         /// <param name="duration_total">Tổng số thời gian cho phép hoàn thành level</param>
         /// <param name="item_total">Tổng số item cần xử lý trong level</param>
-        protected static Parameter[] levelParameter(long level, Enum mode, PlayType play_type,
+        protected static Parameter[] levelParameter(long level, string levelName, Enum mode, PlayType play_type,
                                                     long play_index, long lose_index,
                                                     float duration_total, long item_total)
         {
             var parameter = new Parameter[] {
                         new Parameter(FirebaseAnalytics.ParameterLevel, level),
-                        new Parameter(FirebaseAnalytics.ParameterLevelName, "level_" + level.ToString("#000000")),
+                        new Parameter(FirebaseAnalytics.ParameterLevelName, levelName),
                         new Parameter("mode", mode.RegexToId()),
                         new Parameter("play_type",play_type.RegexToId()),
                         new Parameter("play_index", play_index),
-                        new Parameter("lose_index", lose_index),
-                        new Parameter("session", session )
+                        new Parameter("lose_index", lose_index)
             };
 
             if (duration_total > 0)
@@ -880,37 +896,24 @@ namespace Base
         }
 #endif
 
+        /// <summary>Firebase Analytics limits: name length (event, parameter), text value length, parameters per event.</summary>
+        internal const int MaxNameLength = 40;
+        internal const int MaxTextValueLength = 100;
+        internal const int MaxParameters = 25;
+
 #if USE_FIREBASE
+        /// <summary>
+        /// Sends the parameters as given plus "session" (do not add it yourself); the name as <see cref="ToFirebaseName"/>.
+        /// </summary>
         public static void LogEvent(string eventName, Parameter[] parameters)
         {
-
             try
             {
-                if (string.IsNullOrEmpty(eventName))
-                {
-                    Debug.LogWarning("eventName IsNullOrEmpty");
+                if (!IsReadyToLog(eventName))
                     return;
-                }
 
-                if (instance == null || AnalyticStatus != FirebaseStatus.Initialized)
-                {
-                    if (instance == null)
-                    {
-                        Debug.LogWarning(TAG + "NULL");
-                    }
-                    else
-                    {
-                        Debug.LogWarning(TAG + "AnalyticStatus: " + AnalyticStatus + " " + eventName);
-                    }
-                    return;
-                }
-
-                eventName = eventName.RegexToId(32);
-
-                if (parameters != null)
-                    FirebaseAnalytics.LogEvent(eventName, parameters);
-                else
-                    FirebaseAnalytics.LogEvent(eventName);
+                var withSession = (parameters ?? new Parameter[0]).Append(new Parameter("session", session)).ToArray();
+                FirebaseAnalytics.LogEvent(ToFirebaseName(eventName), withSession);
             }
             catch (Exception ex)
             {
@@ -919,64 +922,25 @@ namespace Base
         }
 #endif
 
+        /// <summary>Sends the event with the parameters of <see cref="ToParameterValues"/>.</summary>
         public static void LogEvent(string eventName, Dictionary<string, object> dictionary = null)
         {
 #if USE_FIREBASE
             try
             {
-                if (string.IsNullOrEmpty(eventName))
-                {
-                    Debug.LogWarning("eventName IsNullOrEmpty");
+                if (!IsReadyToLog(eventName))
                     return;
-                }
 
-                if (instance == null || AnalyticStatus != FirebaseStatus.Initialized)
+                var parameters = ToParameterValues(dictionary, session).Select(x =>
                 {
-                    if (instance == null)
+                    switch (x.Value)
                     {
-                        Debug.LogWarning(TAG + "NULL");
+                        case long l: return new Parameter(x.Key, l);
+                        case double d: return new Parameter(x.Key, d);
+                        default: return new Parameter(x.Key, (string)x.Value);
                     }
-                    else
-                    {
-                        Debug.LogWarning(TAG + "AnalyticStatus: " + AnalyticStatus + " " + eventName);
-                    }
-                    return;
-                }
-
-                eventName = eventName.RegexToId(32);
-
-                if (dictionary != null)
-                {
-                    dictionary.Add("session", session);
-                    var parameters = dictionary.Where(x => x.Value != null && x.Key != null).Select(x =>
-                    {
-                        string key = StringExtend.RegexToId(x.Key);
-                        if (x.Value is float f)
-                            return new Parameter(key, f);
-                        else if (x.Value is double d)
-                            return new Parameter(key, d);
-                        else if (x.Value is long l)
-                            return new Parameter(key, l);
-                        else if (x.Value is int i)
-                            return new Parameter(key, i);
-                        else if (x.Value is string s && !string.IsNullOrEmpty(s))
-                        {
-                            s = s.RegexToId();
-                            return new Parameter(key, s);
-                        }
-                        else
-                            return new Parameter(key, x.Value.ToString());
-                    }).ToArray();
-
-                    if (parameters != null)
-                        FirebaseAnalytics.LogEvent(eventName, parameters);
-                    else
-                        FirebaseAnalytics.LogEvent(eventName);
-                }
-                else
-                {
-                    FirebaseAnalytics.LogEvent(eventName);
-                }
+                }).ToArray();
+                FirebaseAnalytics.LogEvent(ToFirebaseName(eventName), parameters);
             }
             catch (Exception ex)
             {
@@ -984,6 +948,87 @@ namespace Base
             }
 #endif
         }
+
+        /// <summary>
+        /// Event or parameter name as Base has always sent it (lower case, "_" for space and "-"), cut to Firebase's
+        /// 40 characters with a warning (a "..." ending made Firebase drop the event).
+        /// </summary>
+        internal static string ToFirebaseName(string name)
+        {
+            string id = name.RegexToId(int.MaxValue);
+            if (id.Length <= MaxNameLength)
+                return id;
+            Debug.LogWarning($"{TAG}name longer than {MaxNameLength} characters, cut: {id}");
+            return id.Substring(0, MaxNameLength);
+        }
+
+        /// <summary>
+        /// Parameters of a dictionary event: a new list (the caller's dictionary is not changed) with "session" unless
+        /// the caller set it, keys as <see cref="ToFirebaseName"/>, bool as 1 / 0, int / long as long, float / double as
+        /// double, any other value as its text (up to 100 characters, not changed otherwise), at most 25 parameters.
+        /// </summary>
+        internal static List<KeyValuePair<string, object>> ToParameterValues(Dictionary<string, object> dictionary, long session)
+        {
+            var values = new List<KeyValuePair<string, object>>();
+            if (dictionary != null)
+            {
+                foreach (var x in dictionary)
+                {
+                    if (x.Key != null && x.Value != null)
+                        values.Add(new KeyValuePair<string, object>(ToFirebaseName(x.Key), ToParameterValue(x.Value)));
+                }
+            }
+
+            if (!values.Any(x => x.Key == "session"))
+                values.Insert(0, new KeyValuePair<string, object>("session", session));
+
+            if (values.Count > MaxParameters)
+            {
+                Debug.LogWarning($"{TAG}{values.Count} parameters, Firebase takes {MaxParameters}: "
+                    + string.Join(", ", values.Skip(MaxParameters).Select(x => x.Key)) + " not sent");
+                values.RemoveRange(MaxParameters, values.Count - MaxParameters);
+            }
+            return values;
+        }
+
+        private static object ToParameterValue(object value)
+        {
+            switch (value)
+            {
+                case bool b: return b ? 1L : 0L;
+                case int i: return (long)i;
+                case long l: return l;
+                case float f: return (double)f;
+                case double d: return d;
+                default:
+                    string text = value.ToString();
+                    return text.Length > MaxTextValueLength ? text.Substring(0, MaxTextValueLength) : text;
+            }
+        }
+
+#if USE_FIREBASE
+        private static bool IsReadyToLog(string eventName)
+        {
+            if (string.IsNullOrEmpty(eventName))
+            {
+                Debug.LogWarning("eventName IsNullOrEmpty");
+                return false;
+            }
+
+            if (instance == null)
+            {
+                Debug.LogWarning(TAG + "NULL");
+                return false;
+            }
+
+            if (AnalyticStatus != FirebaseStatus.Initialized)
+            {
+                Debug.LogWarning(TAG + "AnalyticStatus: " + AnalyticStatus + " " + eventName);
+                return false;
+            }
+            return true;
+        }
+#endif
 
         public static void LogException(Exception ex)
         {

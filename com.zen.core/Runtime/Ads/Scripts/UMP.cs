@@ -64,7 +64,7 @@ namespace Base.Ads
             if (content != null)
                 content.SetActive(false);
             if (title != null)
-                title.text = "Welcom to " + Application.productName;
+                title.text = "Welcome to " + Application.productName;
         }
 
         protected static bool isChecking = false;

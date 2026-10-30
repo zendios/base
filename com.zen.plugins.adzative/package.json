@@ -1,7 +1,7 @@
 {
   "name": "com.zen.plugins.adzative",
   "displayName": "Base Native Ad",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "unity": "6000.6",
   "unityRelease": "7f1",
   "description": "AdMob native ads (Android: GMA Next-Gen SDK, iOS: Google Mobile Ads SDK) in 5 formats drawn over the Unity view without losing focus: banner, MREC, interstitial, app open, rewarded. Pools, slots on Canvas RectTransforms, 15 layouts, per-placement analytics. Can run under a host waterfall (manualLoad + externalSdkInit), e.g. zen-unity Base AdZative.",

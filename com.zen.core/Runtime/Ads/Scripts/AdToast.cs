@@ -93,7 +93,7 @@ namespace Base.Ads
             content.SetActive(true);
             this.message.text = instance.isToUpperCase ? message.ToUpper() : message;
             loadingSlider.DOKill();
-            TweenValue(loadingSlider, process, durationTime).OnComplete(() =>
+            TweenValue(loadingSlider, process, durationTime).SetUpdate(UpdateType.Normal, true).OnComplete(() =>
             {
                 if (hideOnDone || process >= 1)
                     HideLoading();
@@ -145,7 +145,9 @@ namespace Base.Ads
             content.SetActive(true);
 
             loadingSlider.DOKill();
+            // Real time: fullscreen ads set timeScale 0, a scaled toast would wait until the ad closes.
             TweenValue(loadingSlider, 1, durationAutoHide)
+                .SetUpdate(UpdateType.Normal, true)
                 .OnComplete(() =>
                 {
                     Hide();

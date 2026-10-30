@@ -1,5 +1,23 @@
 # Changelog (com.zen.core)
 
+## [1.4.0] - 2026-10-30
+- UMP consent screen title: "Welcome to <product name>" (was "Welcom").
+- AdToast auto-hide runs on real time: after a rewarded AdMob ad the "Thanks for watching" toast stayed up to
+  ~0.75 s after the ad closed (its timer was frozen while the ad set timeScale 0), forever if the game kept timeScale 0.
+- FirebaseManager.LogEvent (report B16 from the Stickman remaster):
+  - the caller's dictionary is no longer changed; a "session" key it already has, or the same dictionary sent twice,
+    no longer throws and drops the event.
+  - Event and parameter names longer than 40 characters are cut to 40 with a warning (was 29 + "...", a name Firebase
+    rejects, so the event was lost). Shorter names are unchanged (lower case, "_" for space and "-").
+  - Text values are sent as given, up to 100 characters (were lower-cased, spaces to "_", cut at 40): values in
+    reports change from this version. bool is sent as 1 / 0 (was "True" / "False").
+  - At most 25 parameters (Firebase's limit), with a warning naming those not sent.
+  - "session" on every event: also LogEvent without parameters and LogEvent(name, Parameter[]) (do not add it there).
+- FirebaseManager.LogLevel(GameState, string levelId, int levelIndex, ...) for levels with a text id; levelParameter
+  takes the level name.
+- Tests/Editor (Zen.Core.Tests.Editor): EditMode tests for the LogEvent parameters; zen-unity lists com.zen.core in
+  testables.
+
 ## [1.3.0] - 2026-10-28
 - Unity 6000.6.7f1 or newer is required (package.json unity 6000.6 / unityRelease 7f1, also com.zen.plugins.adzative);
   dependencies ugui 2.6.0, Input System 1.20.1. Base.dll / Base.Editor.dll built against the 6000.6.7f1 assemblies
