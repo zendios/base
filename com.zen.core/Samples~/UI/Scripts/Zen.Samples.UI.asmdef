@@ -1,0 +1,23 @@
+{
+    "name": "Zen.Samples.UI",
+    "references": [
+        "Zen.Core",
+        "AdZative",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Unity.InputSystem",
+        "Base.Vibration"
+    ],
+    "rootNamespace": "",
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "DOTWEEN"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,7 +1,7 @@
 # Base Core (com.zen.core)
 
 Zen Base for Unity games in **one package**, `com.zen.core`: Base.dll, DataManager (save / load, ItemDatas), UI popups,
-currency, extensions, vibration, **ads** (AdsManager, AdMob + AdZative native placements, AdConfig, ZenAdIds, UMP,
+currency, extensions, vibration, **ads** (AdsManager, AdMob + AdZative native placements, AdConfig, AdIds, UMP,
 ATT, Taichi, in-app review / update, splash, debug tools), **IAP** (IAPManager, IAPButtonExtent, UIPopupIAP),
 **Firebase** (Analytics, Remote Config, Crashlytics), screens (ScreenUtils) and **Base > Hub**.
 `com.zen.plugins.adzative` (native ads plugin, built from zen-android) is its only Zen companion.
@@ -12,8 +12,8 @@ Required SDKs: uGUI 2.6 (TextMeshPro included), Input System, AdMob (`com.google
 Optional SDKs switch their part on when installed and off when missing, without compile errors:
 Unity IAP (`USE_IN_APP_PURCHASE`), Firebase (`USE_FIREBASE`), AppsFlyer (`USE_APPSFLYER`), Play Review
 (`USE_IN_APP_REVIEW`), Play App Update (`USE_IN_APP_UPDATE`). Do not add these symbols by hand: Base sets them (USE_ADMOB also in Player Settings while the AdMob SDK is there, like USE_ADZATIVE).
-Inside the package the parts still talk through `ZenAnalytics`, `ZenRemote`, `ZenStore` and `ZenToast`, so a missing
-SDK only turns its calls into no-ops.
+It is one assembly: the code of an optional SDK sits under its symbol, so a missing SDK only turns its calls into
+no-ops.
 
 **Docs:** [AGENTS.md](AGENTS.md) (rules for AI agents and new developers),
 [Documentation~/Architecture.md](Documentation~/Architecture.md) (managers, API, examples),
@@ -58,8 +58,9 @@ install the latest free DOTween from dotween.demigiant.com. Then step 2 below. B
 4. **Base > Hub > Setup**: press **Fix all**, then fill the ad IDs (Base > Hub > Ad IDs)
    and put `google-services.json` under `Assets`. The Remove ADs product id is `<package name>.remove.ads`
    (e.g. `com.zen.mygame.remove.ads`): create that product in the IAP catalog / stores, or set another id ending in
-   `remove.ads` in `ZenIapSettings`.
-5. Splash / sample scenes: **Package Manager > Zen Core > Samples > Scenes > Import**.
+   `remove.ads` in `IAPSettings`.
+5. Splash: **Base > Hub > Setup > Create** (Build Settings index 0) and **Add** (the game's ItemDatas on its
+   DataManager). Base > Play From Splash starts every Play there. Samples (UI flow, Data): **Package Manager > Base > Samples**.
 
 ## Base > Hub
 
@@ -78,11 +79,11 @@ Values are taken from the highest layer that has them.
 | Layer | Where | Owner | On a package update |
 |---|---|---|---|
 | 4. Remote Config | Firebase console | the live-ops team | n/a |
-| 3. Game settings | `Assets/Resources` (ZenAdIds, AdConfig, ZenIapSettings, prefab variants), `Assets/Plugins/Android` | the game | never touched |
+| 3. Game settings | `Assets/Resources` (AdIds, AdConfig, IAPSettings, prefab variants), `Assets/Plugins/Android` | the game | never touched |
 | 2. Package defaults | field values in code, Google test IDs | the package | new fields start at their default, old values stay |
 | 1. Code and original prefabs | `Packages/com.zen.core` (read-only) | the package | replaced by the new version |
 
-- **Ad IDs**: one row per `PlacementType` in `ZenAdIds`. A placement without an ID loads Google's test ID (warning).
+- **Ad IDs**: one row per `PlacementType` in `AdIds`. A placement without an ID loads Google's test ID (warning).
   A prefab can still set `AdBase.adIdData` to override its row.
 - **AdConfig**: `AdConfig.Instance` = the game's `Resources/AdConfig`, else the class defaults; `AdConfigRemote`
   applies Remote Config on top. Remote keys never change between versions.
@@ -91,10 +92,10 @@ Values are taken from the highest layer that has them.
 
 ## Extend instead of editing the package
 
-- Ads: subclass `AdBase` / `AdmobBase`, listen to `AdBase.OnAnyStateChanged`, `ZenStore.OnPurchaseStarted`...
-- Remote Config keys of the game: `ZenRemote.OnCollectDefaults += d => d["myKey"] = 3;` and read them in
-  `ZenRemote.OnFetched` with `ZenRemote.GetInt("myKey", 3)`.
-- Analytics: `ZenAnalytics.LogEvent("my_event", new Dictionary<string, object> { { "level", 3 } })`.
+- Ads: subclass `AdBase` / `AdmobBase`, listen to `AdBase.OnAnyStateChanged`...
+- Remote Config keys of the game: `RemoteConfigManager.OnCollectDefaults += d => d["myKey"] = 3;` and read them in
+  `RemoteConfigManager.OnFetched` with `RemoteConfigManager.GetInt("myKey", 3)`.
+- Analytics: `AnalyticsManager.LogEvent("my_event", new Dictionary<string, object> { { "level", 3 } })`.
 - Game items (skins, boosters...): `class SkinDatas : ItemDatas<SkinData>`, add the asset to `DataManager.itemDatas`;
   it is saved by asset name. `DataManager.Get<SkinDatas>()` returns it.
 - Player data: subclass `UserDataBase`.
@@ -126,11 +127,11 @@ one, Base > Hub opens on Setup. Pick any released version there (its CHANGELOG n
 Full steps, including the save migration test: [Documentation~/UpgradeOldGame.md](Documentation~/UpgradeOldGame.md).
 
 1. Delete `Assets/Base`, install the packages, run **Base > Hub > Setup > Fix all**.
-2. Copy each `AdIdData` (Admob_Inter_Default...) ID list into its `ZenAdIds` row; move your `AdConfig.asset` into
+2. Copy each `AdIdData` (Admob_Inter_Default...) ID list into its `AdIds` row; move your `AdConfig.asset` into
    `Assets/Resources` (keep its .meta).
 3. Code: `DataManager.AdConfig` -> `AdConfig.Instance`, `FirebaseManager.LogEvent` / `SetUser` / `LogIAP` /
-   `LogResourceEarn` / `LogResourceSpend` -> `ZenAnalytics.*`, `AdToast.ShowNotice` outside ads -> `ZenToast.ShowNotice`,
-   `FirebaseRemote` -> `ZenRemote` (keys unchanged). Remove `USE_*` symbols from Player Settings.
+   `LogResourceEarn` / `LogResourceSpend` -> `AnalyticsManager.*`,
+   `FirebaseRemote` -> `RemoteConfigManager` (keys unchanged). Remove `USE_*` symbols from Player Settings.
 4. `BoosterDatas` / `OutfitDatas` left Base: keep your own classes with those names and add their assets to
    `DataManager.itemDatas`; existing saves move into them on the first load.
 5. Players' saves: a game released with an older Base saved with BinaryFormatter. The first launch of the new build

@@ -20,13 +20,17 @@ namespace Base.Ads
         internal int loadSeq;
         internal string loadingId;
 
+        /// <summary>No ad unit ID in AdIds: this placement shows Google test ads (they earn nothing).</summary>
+        public bool IsOnFallbackTestId { get; private set; }
+
         protected override void Awake()
         {
             base.Awake();
             if (idList.Count == 0)
             {
+                IsOnFallbackTestId = true;
                 idList = new List<string> { FallbackTestId };
-                LogWarning($"No ad unit ID for {placement} in ZenAdIds (Base > Hub > Setup) --> Google test ID {idList[0]}");
+                LogWarning($"No ad unit ID for {placement} in AdIds (Base > Hub > Setup) --> Google test ID {idList[0]}");
             }
         }
 

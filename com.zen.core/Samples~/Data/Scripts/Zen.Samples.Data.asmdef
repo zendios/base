@@ -1,0 +1,20 @@
+{
+    "name": "Zen.Samples.Data",
+    "references": [
+        "Zen.Core",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
+    "rootNamespace": "",
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "DOTWEEN"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

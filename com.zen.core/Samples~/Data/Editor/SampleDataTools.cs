@@ -11,7 +11,7 @@ using UnityEngine;
 /// </summary>
 public static class SampleDataTools
 {
-    private const string Menu = "Tools/Zen Samples/";
+    private const string Menu = "Base/Samples/";
 
     private static string SavePath => Path.Combine(Application.persistentDataPath, Application.identifier + ".gd");
 

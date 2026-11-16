@@ -20,7 +20,7 @@ namespace Base.Setup
     /// Publish (tools/base-publish.sh) pushes them and mirrors both packages into the public github.com/zendios/base
     /// (tag x.y.z, built by OpenUPM), after which games see the version in Setup.
     /// </summary>
-    internal class HubRelease : IZenHubTab
+    internal class HubRelease : IHubTab
     {
         public string Title => "Release";
 
@@ -91,7 +91,7 @@ namespace Base.Setup
                     since = bas != null ? $"the {version} release" : null;
                 }
                 string range = bas != null ? $"{bas}..HEAD" : "-50 HEAD";
-                return ZenUpdateChecker.Git($"log --no-merges --reverse --format=%s {range} -- zen-unity/Packages zen-base tools", Repo)
+                return UpdateChecker.Git($"log --no-merges --reverse --format=%s {range} -- zen-unity/Packages zen-base tools", Repo)
                     .Split('\n').Select(l => l.Trim().Trim('﻿'))
                     .Where(l => l.Length > 0 && !l.StartsWith("Zen packages "))
                     .Select(l => new Change { subject = l, on = !Noise.IsMatch(l) })
@@ -119,7 +119,7 @@ namespace Base.Setup
         {
             try
             {
-                string s = ZenUpdateChecker.Git(args, Repo).Trim();
+                string s = UpdateChecker.Git(args, Repo).Trim();
                 return s.Length > 0 ? s : null;
             }
             catch { return null; }
@@ -176,14 +176,14 @@ namespace Base.Setup
         public void OnGUI()
         {
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            ZenHub.Header($"Base Core {current} (embedded)", "Create update: notes into CHANGELOG.md, Base.dll build, samples / templates, version, commit and local tag zen/<version>. Publish: zen + tag, then the public github.com/zendios/base + tag (OpenUPM builds it; games then see the version in Setup).");
+            BaseHub.Header($"Base Core {current} (embedded)", "Create update: notes into CHANGELOG.md, Base.dll build, samples / templates, version, commit and local tag zen/<version>. Publish: zen + tag, then the public github.com/zendios/base + tag (OpenUPM builds it; games then see the version in Setup).");
             using (new EditorGUI.DisabledScope(busy))
             {
                 version = EditorGUILayout.TextField("New version", version);
                 DrawChanges();
 
                 EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-                GUILayout.Label("Notes (CHANGELOG, editable)", ZenHub.Note);
+                GUILayout.Label("Notes (CHANGELOG, editable)", BaseHub.Note);
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.EndHorizontal();
                 notes = EditorGUILayout.TextArea(notes, GUILayout.MinHeight(140));
@@ -204,15 +204,15 @@ namespace Base.Setup
                         Push();
                 EditorGUILayout.EndHorizontal();
                 if (pending.Count > 0)
-                    EditorGUILayout.LabelField(new GUIContent($"Not committed yet, goes into the release commit: {string.Join(", ", pending.Select(Path.GetFileName))}", string.Join("\n", pending)), ZenHub.Warn);
+                    EditorGUILayout.LabelField(new GUIContent($"Not committed yet, goes into the release commit: {string.Join(", ", pending.Select(Path.GetFileName))}", string.Join("\n", pending)), BaseHub.Warn);
                 if (released == null && published == null)
-                    EditorGUILayout.LabelField("Publish becomes available after Create update.", ZenHub.Note);
+                    EditorGUILayout.LabelField("Publish becomes available after Create update.", BaseHub.Note);
                 if (published != null)
                 {
                     EditorGUILayout.BeginHorizontal();
                     bool live = !string.IsNullOrEmpty(openUpm) && openUpm == published;
                     EditorGUILayout.LabelField(new GUIContent(live ? $"OpenUPM has {published}: games can update." : openUpm == null ? $"OpenUPM: {published} pushed, check in 15-30 minutes." : $"OpenUPM does not have {published} yet (latest: {(openUpm == "" ? "none" : openUpm)}).",
-                        "https://openupm.com/packages/com.zen.core/"), live ? ZenHub.Good : ZenHub.Note);
+                        "https://openupm.com/packages/com.zen.core/"), live ? BaseHub.Good : BaseHub.Note);
                     if (GUILayout.Button("Check OpenUPM", EditorStyles.miniButton, GUILayout.Width(110)))
                         openUpm = OpenUpmLatest();
                     if (GUILayout.Button("Open page", EditorStyles.miniButton, GUILayout.Width(80)))
@@ -227,9 +227,9 @@ namespace Base.Setup
             lock (log) text = log.ToString();
             if (text.Length > 0)
             {
-                ZenHub.Header("Output");
+                BaseHub.Header("Output");
                 logScroll = EditorGUILayout.BeginScrollView(logScroll, EditorStyles.helpBox, GUILayout.MinHeight(160));
-                EditorGUILayout.SelectableLabel(text, ZenHub.NoteWrapped, GUILayout.ExpandHeight(true), GUILayout.MinHeight(ZenHub.NoteWrapped.CalcHeight(new GUIContent(text), 600)));
+                EditorGUILayout.SelectableLabel(text, BaseHub.NoteWrapped, GUILayout.ExpandHeight(true), GUILayout.MinHeight(BaseHub.NoteWrapped.CalcHeight(new GUIContent(text), 600)));
                 EditorGUILayout.EndScrollView();
             }
             EditorGUILayout.EndScrollView();
@@ -241,8 +241,8 @@ namespace Base.Setup
         {
             int on = changes.Count(c => c.on);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Changes", ZenHub.Note);
-            GUILayout.Label(since != null ? $"{on} of {changes.Count} since {since}" : $"{on} of {changes.Count} recent", ZenHub.Note);
+            GUILayout.Label("Changes", BaseHub.Note);
+            GUILayout.Label(since != null ? $"{on} of {changes.Count} since {since}" : $"{on} of {changes.Count} recent", BaseHub.Note);
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("All", EditorStyles.toolbarButton)) changes.ForEach(c => c.on = true);
             if (GUILayout.Button("None", EditorStyles.toolbarButton)) changes.ForEach(c => c.on = false);
@@ -271,7 +271,7 @@ namespace Base.Setup
                     EditorGUI.DrawRect(r, EditorGUIUtility.isProSkin ? new Color(1f, 1f, 1f, 0.035f) : new Color(0f, 0f, 0f, 0.045f));
                 var c = changes[i];
                 c.on = EditorGUI.Toggle(new Rect(r.x + 2, r.y + 1, 16, r.height), c.on);
-                GUI.Label(new Rect(r.x + 22, r.y, r.width - 24, r.height), new GUIContent(c.subject, c.subject), c.on ? ZenHub.Body : ZenHub.Muted);
+                GUI.Label(new Rect(r.x + 22, r.y, r.width - 24, r.height), new GUIContent(c.subject, c.subject), c.on ? BaseHub.Body : BaseHub.Muted);
             }
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
@@ -389,7 +389,7 @@ namespace Base.Setup
             }
             try
             {
-                if (ZenUpdateChecker.Git($"tag -l zen/{version}", Repo).Trim().Length > 0)
+                if (UpdateChecker.Git($"tag -l zen/{version}", Repo).Trim().Length > 0)
                 {
                     EditorUtility.DisplayDialog("Release", $"Tag zen/{version} already exists.", "OK");
                     return;
@@ -531,8 +531,8 @@ namespace Base.Setup
                     busy = false;
                     done(ok);
                     AssetDatabase.Refresh();
-                    if (EditorWindow.HasOpenInstances<ZenHub>())
-                        EditorWindow.GetWindow<ZenHub>(false, null, false).Repaint();
+                    if (EditorWindow.HasOpenInstances<BaseHub>())
+                        EditorWindow.GetWindow<BaseHub>(false, null, false).Repaint();
                 };
             }) { IsBackground = true }.Start();
         }

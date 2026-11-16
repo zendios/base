@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace Base.Setup
 {
-    /// <summary>Core: DOTween (required), Android templates and Player Settings of the Zen games.</summary>
-    internal class CoreSetupModule : IZenSetupModule
+    /// <summary>Core: DOTween (required), Android templates and Player Settings of the games on Base.</summary>
+    internal class CoreSetupModule : ISetupModule
     {
         public string Name => "Core";
         public int Order => 0;
@@ -57,12 +57,48 @@ namespace Base.Setup
 
         private static string TemplatesFolder => Path.Combine(PackageFolder, "Editor", "AndroidTemplates~");
 
-        public IEnumerable<ZenSetupIssue> Check()
+        // Assets of the game made by an older Base, under the names it used then (same script GUIDs): renamed, they load.
+        private static readonly (string from, string to)[] RenamedAssets =
         {
+            ("Assets/Resources/ZenAdIds.asset", "AdIds"),
+            ("Assets/Resources/ZenIapSettings.asset", "IAPSettings"),
+            ("Assets/ZenProfiles", "Profiles"),
+        };
+
+        /// <summary>Game assets still under an old Base name: Base no longer finds them (ad IDs fall back to test IDs).
+        /// Build Check reports them when building.</summary>
+        internal static IEnumerable<SetupIssue> OldAssetNames()
+        {
+            var old = RenamedAssets.Where(r => AssetDatabase.IsValidFolder(r.from) || File.Exists(r.from)).ToList();
+            if (old.Count == 0)
+                yield break;
+            yield return new SetupIssue
+            {
+                title = "Game assets under old Base names",
+                message = string.Join(", ", old.Select(r => $"{r.from} -> {r.to}")) + ". Base loads them by their new " +
+                          "names: without the rename the ads use Google test IDs and the store settings are lost.",
+                type = MessageType.Error,
+                fixLabel = "Rename",
+                fix = () =>
+                {
+                    foreach (var (from, to) in old)
+                    {
+                        string error = AssetDatabase.RenameAsset(from, to);
+                        Debug.Log(string.IsNullOrEmpty(error) ? $"[Base Setup] {from} renamed to {to}" : $"[Base Setup] {from}: {error}");
+                    }
+                },
+            };
+        }
+
+        public IEnumerable<SetupIssue> Check()
+        {
+            foreach (var issue in OldAssetNames())
+                yield return issue;
+
             // Base needs DOTween's core (DOTween.dll), from DOTween (free) or DOTween Pro in Assets; no asmdef needed.
             // DOTween Pro is added by hand from the Asset Store (paid, never shipped with Base).
             if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "DOTween"))
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     title = "DOTween or DOTween Pro is required",
                     message = "Base needs DOTween in Assets/Plugins/Demigiant: import DOTween (free) from the Asset Store, or DOTween Pro by hand " +
@@ -75,7 +111,7 @@ namespace Base.Setup
             // the package's AGENTS.md at the project root: Claude / Cursor / Copilot read it there (never in Packages/)
             string agentsSource = Path.Combine(PackageFolder, "AGENTS.md");
             if (File.Exists(agentsSource) && !File.Exists("AGENTS.md") && !File.Exists("CLAUDE.md"))
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = "AGENTS.md (Base rules and API map for AI agents and new developers) is not in the project root yet.",
                     fixLabel = "Copy",
@@ -91,9 +127,9 @@ namespace Base.Setup
                 var missing = Directory.GetFiles(TemplatesFolder).Select(Path.GetFileName)
                     .Where(f => !f.EndsWith(".meta") && !File.Exists(Path.Combine(AndroidFolder, f))).ToList();
                 if (missing.Count > 0)
-                    yield return new ZenSetupIssue
+                    yield return new SetupIssue
                     {
-                        message = $"Android templates missing in {AndroidFolder}: {string.Join(", ", missing)} (gradle / manifest / proguard of the Zen games; copied once, then they are the game's).",
+                        message = $"Android templates missing in {AndroidFolder}: {string.Join(", ", missing)} (gradle / manifest / proguard of the games on Base; copied once, then they are the game's).",
                         fixLabel = "Copy",
                         fix = () =>
                         {
@@ -109,7 +145,7 @@ namespace Base.Setup
             int gameAgp = AgpMajor(Path.Combine(AndroidFolder, BaseTemplate));
             int baseAgp = AgpMajor(Path.Combine(TemplatesFolder, BaseTemplate));
             if (gameAgp > 0 && gameAgp < baseAgp)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = $"Android Gradle templates in {AndroidFolder} are for an older Unity (Android Gradle Plugin {gameAgp}, Base needs {baseAgp}): " +
                               $"the Gradle build fails. Replace copies the old ones to {OldTemplatesFolder} first (manifests and proguard stay).",
@@ -120,7 +156,7 @@ namespace Base.Setup
 
             var oldTmp = OldTmpShaders();
             if (oldTmp.Count > 0)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = $"TextMesh Pro shaders from before Unity 6 in {TmpShadersFolder}: {string.Join(", ", oldTmp.Select(Path.GetFileName))}. " +
                               "Text drawn with them is invisible (the TMP vertex layout changed). Update copies the shaders of TMP Essential Resources " +
@@ -131,7 +167,7 @@ namespace Base.Setup
                 };
 
             if (IosVersion.TryParse(PlayerSettings.iOS.targetOSVersionString, out var ios) && ios < MinIos)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = $"iOS Target minimum version is {PlayerSettings.iOS.targetOSVersionString}: Base needs {MinIos} (pods and frameworks follow it).",
                     type = MessageType.Error,
@@ -143,7 +179,7 @@ namespace Base.Setup
             var off = TemplateSwitches.Where(t => File.Exists(Path.Combine(AndroidFolder, t.Key)))
                 .Where(t => settings.FindProperty(t.Value) is SerializedProperty p && !p.boolValue).Select(t => t.Key).ToList();
             if (off.Count > 0)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = $"Custom Android files not used by the build (Player Settings > Publishing Settings): {string.Join(", ", off)}.",
                     type = MessageType.Error,
@@ -152,7 +188,7 @@ namespace Base.Setup
                 };
 
             if (PlayerSettings.Android.minSdkVersion < AndroidSdkVersions.AndroidApiLevel26)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = $"Android Minimum API Level is {(int)PlayerSettings.Android.minSdkVersion}: Unity 6.6 and the Zen Android libraries need 26.",
                     type = MessageType.Error,
@@ -163,7 +199,7 @@ namespace Base.Setup
             var android = UnityEditor.Build.NamedBuildTarget.Android;
             if (PlayerSettings.GetScriptingBackend(android) != ScriptingImplementation.IL2CPP
                 || (PlayerSettings.Android.targetArchitectures & AndroidArchitecture.ARM64) == 0)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = "Google Play needs 64-bit builds: Scripting Backend IL2CPP with ARM64.",
                     fixLabel = "IL2CPP ARM64",

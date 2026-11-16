@@ -22,13 +22,13 @@ public class ScreenUtils : MonoBehaviour
 
     [Header("Design size per orientation")]
     [Tooltip("Reference resolution used while the screen is wider than tall.")]
-    public Vector2 landscapeReference = new Vector2(1920, 1080);
+    public Vector2 landscapeReference = new Vector2(1920, 960);
     [Tooltip("Reference resolution used while the screen is taller than wide.")]
-    public Vector2 portraitReference = new Vector2(1080, 1920);
+    public Vector2 portraitReference = new Vector2(960, 1920);
 
     [Header("Tablets")]
     [Tooltip("Largest physical size of a canvas unit, relative to a ~65 mm wide phone. 1.3 = UI at most 30% bigger than on that phone. 0 = no cap.")]
-    [Min(0)] public float tabletMaxScale = 1.3f;
+    [Min(0)] public float tabletMaxScale = 1.0f;
 
     /// <summary>Raised with true for portrait when the screen orientation changes (and once at start).</summary>
     public static event Action<bool> OnOrientationChanged;
@@ -61,7 +61,6 @@ public class ScreenUtils : MonoBehaviour
 
         bool portrait = Screen.height >= Screen.width;
         canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
         canvasScaler.referenceResolution = ReferenceFor(portrait, Screen.width, Screen.height, Base.ScreenMetrics.Dpi, tabletMaxScale,
             UnityEngine.Device.Application.isMobilePlatform);
 
@@ -72,10 +71,24 @@ public class ScreenUtils : MonoBehaviour
             OnOrientationChanged?.Invoke(portrait);
         }
 
-        var canvas = GetComponent<Canvas>();
-        if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceCamera && canvas.worldCamera == null)
-            canvas.worldCamera = Camera.main;
+        AssignUICamera();
     }
+
+    private void OnValidate() => AssignUICamera();
+
+    /// <summary>Canvas without a camera: the scene's UI_Camera, else Camera.main.</summary>
+    private void AssignUICamera()
+    {
+        var canvas = GetComponent<Canvas>();
+        // No renderMode check: a Screen Space - Camera canvas without a camera reports ScreenSpaceOverlay. A camera on a
+        // real Overlay canvas is ignored. A prefab asset cannot reference a scene camera.
+        if (canvas == null || canvas.worldCamera != null || !gameObject.scene.IsValid())
+            return;
+        var uiCamera = GameObject.Find(UICameraName);
+        canvas.worldCamera = uiCamera != null && uiCamera.TryGetComponent(out Camera camera) ? camera : Camera.main;
+    }
+
+    private const string UICameraName = "UI_Camera";
 
     private static bool orientationSent;
 

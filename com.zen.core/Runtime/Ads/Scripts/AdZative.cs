@@ -81,7 +81,6 @@ public class AdZative : AdmobBase
     [SerializeField] protected float sizeRequest = 240;
     [Tooltip("Height (dp) of the native ad_container; above Size Dp, the rest lies below the screen edge.")]
     [SerializeField] protected int sizeRequestDp = 120;
-    [SerializeField] protected List<RectTransform> rootRectTransform;
     #endregion
 
     #region Types and Properties
@@ -181,19 +180,21 @@ public class AdZative : AdmobBase
         {
             if (config.adBannerReload > 0)
                 timeAutoReload = config.adBannerReload;
-
-            _scaleFactor = canvas.scaleFactor;
             offsetTopDp = config.adBannerOffset;
-            offsetTop = DpToCanvasUnits(offsetTopDp);
-            size = DpToCanvasUnits(sizeDp);
-            sizeRequest = DpToCanvasUnits(sizeRequestDp);
-            // This rect is the native view (AdArea): the offset gap (top margin of ad_container, see EnsureSlot) + the
-            // requested ad. Its top is size + offset above the screen bottom, so only the top `size` of the ad is on
-            // screen; a bigger request lies below the edge.
-            RectTransform rectTransform = transform.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(0, sizeRequest + offsetTop);
-            rectTransform.anchoredPosition = new Vector2(0, size - sizeRequest);
         }
+
+        // Converted even without a config, so the banner space is right before the ad loads.
+        if (canvas != null)
+            _scaleFactor = canvas.scaleFactor;
+        offsetTop = DpToCanvasUnits(offsetTopDp);
+        size = DpToCanvasUnits(sizeDp);
+        sizeRequest = DpToCanvasUnits(sizeRequestDp);
+        // This rect is the native view (AdArea): the offset gap (top margin of ad_container, see EnsureSlot) + the
+        // requested ad. Its top is size + offset above the screen bottom, so only the top `size` of the ad is on
+        // screen; a bigger request lies below the edge.
+        RectTransform rectTransform = transform.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(0, sizeRequest + offsetTop);
+        rectTransform.anchoredPosition = new Vector2(0, size - sizeRequest);
 
         if (backgroundRect == null && background != null)
             backgroundRect = background.GetComponent<RectTransform>();
@@ -208,11 +209,8 @@ public class AdZative : AdmobBase
             backgroundRect.anchoredPosition = new Vector2(0, -offsetTop);
         }
 
-        foreach (RectTransform rectTransform in rootRectTransform)
-        {
-            if (rectTransform != null)
-                rectTransform.offsetMin = new Vector2(0, size + offsetTop);
-        }
+        //AdBannerSpace.Set(size + offsetTop);
+        AdBannerSpace.Set(size);
     }
 
     private void OnEnable()
@@ -248,22 +246,20 @@ public class AdZative : AdmobBase
 
     private void OnRemoveAdChanged(bool isVip)
     {
+        // Remove Ads / VIP keep rewarded ads (the player chooses them, as AdBase.isCanLoad allows): the native rewarded
+        // is the fallback of adRewardFlow Both and the only rewarded of OnlyNative.
+        if (type == AdType.Reward || type == AdType.RewardInter)
+            return;
         if (isVip)
         {
             if (type == AdType.Banner)
-            {
-                foreach (RectTransform rectTransform in rootRectTransform)
-                    if (rectTransform != null)
-                        rectTransform.offsetMin = Vector2.zero;
-            }
+                AdBannerSpace.Set(0);
             StopAllCoroutines();
             DestroyAd();
         }
         else if (type == AdType.Banner)
         {
-            foreach (RectTransform rectTransform in rootRectTransform)
-                if (rectTransform != null)
-                    rectTransform.offsetMin = new Vector2(0, size + offsetTop);
+            UpdateConfig(); // converts size from dp and sets the banner space
         }
         gameObject.SetActive(!isVip);
     }

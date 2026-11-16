@@ -6,35 +6,35 @@ using UnityEditor;
 
 namespace Base.Ads
 {
-    /// <summary>Ads: the game's AdConfig and ZenAdIds (Assets/Resources).</summary>
-    internal class AdsSetupModule : IZenSetupModule
+    /// <summary>Ads: the game's AdConfig and AdIds (Assets/Resources).</summary>
+    internal class AdsSetupModule : ISetupModule
     {
         public string Name => "Ads";
         public int Order => 10;
 
-        public IEnumerable<ZenSetupIssue> Check()
+        public IEnumerable<SetupIssue> Check()
         {
             var nextGenIssue = CheckGmaNextGen();
             if (nextGenIssue != null)
                 yield return nextGenIssue;
 
-            if (ZenSetupUtil.FindResource<AdConfig>(AdConfig.ResourcePath) == null)
-                yield return new ZenSetupIssue
+            if (SetupUtil.FindResource<AdConfig>(AdConfig.ResourcePath) == null)
+                yield return new SetupIssue
                 {
                     message = "No AdConfig in the game: the package defaults are used (frequency, flows, FTUE). Create one to tune them per game.",
                     fixLabel = "Create",
-                    fix = () => ZenSetupUtil.CreateResource<AdConfig>(AdConfig.ResourcePath),
+                    fix = () => SetupUtil.CreateResource<AdConfig>(AdConfig.ResourcePath),
                 };
 
-            var ids = ZenSetupUtil.FindResource<ZenAdIds>(ZenAdIds.ResourcePath);
+            var ids = SetupUtil.FindResource<AdIds>(AdIds.ResourcePath);
             if (ids == null)
             {
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
-                    message = "No ZenAdIds in the game: every placement loads Google test IDs. Create it, then paste the AdMob ad unit IDs.",
+                    message = "No AdIds in the game: every placement loads Google test IDs. Create it, then paste the AdMob ad unit IDs.",
                     type = MessageType.Error,
                     fixLabel = "Create",
-                    fix = () => ZenSetupUtil.CreateResource<ZenAdIds>(ZenAdIds.ResourcePath, a => a.AddMissingPlacements()),
+                    fix = () => SetupUtil.CreateResource<AdIds>(AdIds.ResourcePath, a => a.AddMissingPlacements()),
                 };
                 yield break;
             }
@@ -45,7 +45,7 @@ namespace Base.Ads
                 .Where(p => p != PlacementType.None && ids.entries.First(e => e.placement == p).android.All(string.IsNullOrWhiteSpace))
                 .ToList();
             if (empty.Count > 0)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     title = $"{empty.Count} placements without an Android ID (test ads)",
                     message = $"{empty.Count} placements have no Android ID and load Google test IDs: {string.Join(", ", empty)}. Fine for placements the game does not use.",
@@ -57,7 +57,7 @@ namespace Base.Ads
 
         // AdZative is built on the GMA Next-Gen SDK. The Google Mobile Ads plugin builds the Standard SDK unless its
         // settings select Next-Gen; then native ads fail on device (NoClassDefFoundError ...ads.mobile.sdk).
-        private static ZenSetupIssue CheckGmaNextGen()
+        private static SetupIssue CheckGmaNextGen()
         {
             var settings = AssetDatabase.FindAssets("GoogleMobileAdsSettings t:ScriptableObject").Select(AssetDatabase.GUIDToAssetPath)
                 .Select(AssetDatabase.LoadAssetAtPath<UnityEngine.ScriptableObject>).FirstOrDefault(s => s != null);
@@ -70,7 +70,7 @@ namespace Base.Ads
             if (overrideSdk == null || selectedSdk == null || (overrideSdk.boolValue && selectedSdk.intValue == 1))
                 return null;
 
-            return new ZenSetupIssue
+            return new SetupIssue
             {
                 title = "Google Mobile Ads builds the Standard Android SDK",
                 message = "AdZative native ads need the GMA Next-Gen Android SDK; with the Standard one they fail on device " +

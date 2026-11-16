@@ -420,7 +420,7 @@ namespace Base
             {
 #if USE_FIREBASE
                 // Optimus Note: Ensure RegexToId() is optimized or cached if possible.
-                ZenAnalytics.SetUser(title.RegexToId(32), value.RegexToId());
+                AnalyticsManager.SetUser(title.RegexToId(32), value.RegexToId());
 #endif
             }
             catch (Exception ex)

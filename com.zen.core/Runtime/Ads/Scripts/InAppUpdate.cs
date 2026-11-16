@@ -52,7 +52,7 @@ public class InAppUpdate : MonoBehaviour
     {
         updateButton.onClick.AddListener(() =>
         {
-            ZenAnalytics.LogEvent("iau_click_update");
+            AnalyticsManager.LogEvent("iau_click_update");
             updateStatus.text = "Getting Update info...";
             updateButton.interactable = false;
             laterButton.interactable = false;
@@ -85,7 +85,7 @@ public class InAppUpdate : MonoBehaviour
 
         laterButton.onClick.AddListener(() =>
         {
-            ZenAnalytics.LogEvent("iau_click_later");
+            AnalyticsManager.LogEvent("iau_click_later");
             updateButton.interactable = false;
             laterButton.interactable = false;
             OnUpdateError?.Invoke("later");
@@ -108,7 +108,7 @@ public class InAppUpdate : MonoBehaviour
         }
 
 #if USE_IN_APP_UPDATE && UNITY_ANDROID
-        ZenAnalytics.LogEvent("iau_check");
+        AnalyticsManager.LogEvent("iau_check");
         updateButton.interactable = false;
         yield return new WaitForEndOfFrame();
 
@@ -147,7 +147,7 @@ public class InAppUpdate : MonoBehaviour
                 updateStatus.text = "Status: " + updateAvailability.ToString() + " Version Code: " + availableVersionCode;
                 Debug.Log(TAG + "Status: " + updateAvailability.ToString() + " AppUpdateStatus: " + appUpdateStatus.ToString() + " VersionCode: " + availableVersionCode);
 
-                ZenAnalytics.LogEvent("iau_check_" + updateAvailability.ToString());
+                AnalyticsManager.LogEvent("iau_check_" + updateAvailability.ToString());
                 if (updateAvailability == UpdateAvailability.UpdateNotAvailable)
                 {
                     updateStatus.text = "No updates are available.";
@@ -188,7 +188,7 @@ public class InAppUpdate : MonoBehaviour
 
     public IEnumerator DOShow(Action<string> onUpdateError, bool forceUpdate)
     {
-        ZenAnalytics.LogEvent("iau_show");
+        AnalyticsManager.LogEvent("iau_show");
         OnUpdateError = onUpdateError;
         laterButton.gameObject.SetActive(!forceUpdate);
         content.SetActive(true);
@@ -209,7 +209,7 @@ public class InAppUpdate : MonoBehaviour
             yield break;
         }
 
-        ZenAnalytics.LogEvent("iau_update_start");
+        AnalyticsManager.LogEvent("iau_update_start");
         updateStatus.text = "Start update...";
         Debug.Log(TAG + "StartUpdate");
         // Creates an AppUpdateOptions for an immediate flow that allows asset pack deletion.
@@ -242,7 +242,7 @@ public class InAppUpdate : MonoBehaviour
         if (startUpdateRequest.Status == AppUpdateStatus.Failed)
         {
             string error = startUpdateRequest?.Error.ToString();
-            ZenAnalytics.LogEvent("iau_update_request_" + error);
+            AnalyticsManager.LogEvent("iau_update_request_" + error);
             updateStatus.text = "UPDATE REQUEST ERROR CODE: " + error;
             Debug.LogError(TAG + "UPDATE REQUEST ERROR CODE: " + error); // Log appUpdateInfoOperation.Error.
             yield return new WaitForSeconds(1);
@@ -273,7 +273,7 @@ public class InAppUpdate : MonoBehaviour
 
         if (result.IsSuccessful)
         {
-            ZenAnalytics.LogEvent("iau_update_success");
+            AnalyticsManager.LogEvent("iau_update_success");
             updateStatus.text = "Update Success!";
             Debug.Log(TAG + "SUCCESS");
             yield return new WaitForSeconds(1);
@@ -282,7 +282,7 @@ public class InAppUpdate : MonoBehaviour
         else
         {
             string error = result?.Error.ToString();
-            ZenAnalytics.LogEvent("iau_update_" + error);
+            AnalyticsManager.LogEvent("iau_update_" + error);
             updateStatus.text = "ERROR CODE: " + error;
             Debug.LogError(TAG + "ERROR: " + error); // Log appUpdateInfoOperation.Error.
             yield return new WaitForSeconds(1);

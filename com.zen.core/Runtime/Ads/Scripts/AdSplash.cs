@@ -1,7 +1,6 @@
 using Base;
 using Base.Ads;
 using System.Collections;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
@@ -19,6 +18,11 @@ public class AdSplash : MonoBehaviour
     protected LoadSceneMode loadSceneGameMode = LoadSceneMode.Additive;
 
     protected AdConfig adConfig;
+
+    // A second (additive) game scene only when it is in the Build Settings: a missing index threw in
+    // GetSceneByBuildIndex and stopped the splash with its loading screen on top of the game.
+    private bool HasGameScene => loadSceneGameIndex > 1 && loadSceneGameIndex != loadSceneMainIndex &&
+                                 loadSceneGameIndex < SceneManager.sceneCountInBuildSettings;
 
     // Track parallel scene loading operations
     private AsyncOperation mainSceneLoadOp;
@@ -94,12 +98,12 @@ public class AdSplash : MonoBehaviour
         Log("Firebase initialize...");
         AdToast.SetUpdate("Firebase Manager initialize......", 0.30f, 5f);
         yield return new WaitForEndOfFrame();
-        yield return ZenRemote.Init();
+        yield return RemoteConfigManager.Init();
 
         Log("Getting remote config...");
         AdToast.SetUpdate("Firebase manager getting remote config...", 0.35f, 5f);
         yield return new WaitForEndOfFrame();
-        yield return ZenRemote.Fetch();
+        yield return RemoteConfigManager.Fetch();
 
         var userData = DataManager.UserData;
         var gameConfig = DataManager.GameConfig;
@@ -130,7 +134,12 @@ public class AdSplash : MonoBehaviour
         {
             yield return AdsManager.IEInit();
 
-            if (adConfig.adInterFlow == AdFlow.OnlyDefault || adConfig.adInterFlow == AdFlow.Both)
+            bool admobInter = adConfig.adInterFlow == AdFlow.OnlyDefault || adConfig.adInterFlow == AdFlow.Both;
+            if (admobInter && !AdsManager.IsInitialized)
+            {
+                AdsManager.LoadInterOpenOnInit();   // init slower than its timeout: load once it is ready
+            }
+            else if (admobInter)
             {
                 yield return AdsManager.IELoad(PlacementType.AdmobInterOpen, (type, state) =>
                 {
@@ -191,27 +200,63 @@ public class AdSplash : MonoBehaviour
         AdsManager.LoadAds();
 
         AdToast.HideLoading();
+        ShowTestAdsNotice();
         IsShowing = false;
+
+        // One scene: the home (Main). Main + game scene: straight into the game (Load); the game's GameManager calls
+        // Ready once level, player and map are set up. Enqueued so every listener of the loaded scenes is subscribed.
+        if (HasGameScene)
+            UnityMainThreadDispatcher.Enqueue(() => GameStateManager.Load());
+        else
+            UnityMainThreadDispatcher.Enqueue(() => GameStateManager.Main());
+    }
+
+    // Test ads earn nothing: say so on screen in every build (a new game has no IDs yet, so the build is not blocked),
+    // so a game shipped without its AdIds is seen at the first launch instead of in the revenue report.
+    private static void ShowTestAdsNotice()
+    {
+        int missing = 0;
+        foreach (var ad in AdsManager.Placements.Values)
+        {
+            if (ad is AdmobBase admob && admob.IsOnFallbackTestId)
+                missing++;
+        }
+        if (AdsManager.UseIdTest)
+            AdToast.ShowNotice("Test ads: Test IDs is ON in AdConfig.", 3f);
+        else if (missing > 0)
+            AdToast.ShowNotice($"Test ads: {missing} ad placements have no ID in AdIds.", 3f);
     }
 
     protected IEnumerator IELoadGameScene()
     {
+#if UNITY_EDITOR
+        // Play started in another scene (Base > Play From Splash): back to that scene instead of the main one.
+        string openScene = UnityEditor.SessionState.GetString("Base.PlayFromSplash.Scene", "");
+        if (!string.IsNullOrEmpty(openScene))
+        {
+            mainSceneLoadOp = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(openScene,
+                new LoadSceneParameters(loadSceneMainMode));
+            if (mainSceneLoadOp != null) yield return mainSceneLoadOp;
+            yield return new WaitForEndOfFrame();
+            yield break;
+        }
+#endif
         // We only start loading if the scene isn't already loaded (or loading)
         Scene mainScene = SceneManager.GetSceneByBuildIndex(loadSceneMainIndex);
         if (!mainScene.IsValid() || !mainScene.isLoaded)
         {
-            ZenAnalytics.LogEvent("load_scene_main");
+            AnalyticsManager.LogEvent("load_scene_main");
             mainSceneLoadOp = SceneManager.LoadSceneAsync(loadSceneMainIndex, loadSceneMainMode);
             // Yielding the operation directly is the Unity-standard way to wait for it.
             if (mainSceneLoadOp != null) yield return mainSceneLoadOp;
         }
 
-        if (loadSceneGameIndex > 1 && loadSceneGameIndex != loadSceneMainIndex)
+        if (HasGameScene)
         {
             Scene gameScene = SceneManager.GetSceneByBuildIndex(loadSceneGameIndex);
             if (!gameScene.IsValid() || !gameScene.isLoaded)
             {
-                ZenAnalytics.LogEvent("load_scene_game");
+                AnalyticsManager.LogEvent("load_scene_game");
                 gameSceneLoadOp = SceneManager.LoadSceneAsync(loadSceneGameIndex, loadSceneGameMode);
                 if (gameSceneLoadOp != null) yield return gameSceneLoadOp;
             }
@@ -233,12 +278,12 @@ public class AdSplash : MonoBehaviour
             yield return null;
         }
 
-        ZenAnalytics.LogEvent("active_scene_game");
+        AnalyticsManager.LogEvent("active_scene_game");
 
         if (loadSceneGameIndex > 0)
         {
             Scene checkActiveScene;
-            if (loadSceneGameIndex > 1 && loadSceneGameIndex != loadSceneMainIndex)
+            if (HasGameScene)
             {
                 checkActiveScene = SceneManager.GetSceneByBuildIndex(loadSceneGameIndex);
             }

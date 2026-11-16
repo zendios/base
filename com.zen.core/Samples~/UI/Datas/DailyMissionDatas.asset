@@ -1,0 +1,173 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d897a74b312c54a779e3d6e9cfdf362f, type: 3}
+  m_Name: DailyMissionDatas
+  m_EditorClassIdentifier: Zen.Core::Base.DailyMissionDatas
+  list:
+  - name: Play {0} games
+    id: race_play_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 1
+    isSelected: 1
+    count: -1
+    eventKey: play
+    target: 2
+    reward:
+      type: 2
+      id: 
+      amount: 80
+      icon: {fileID: 0}
+    group: 
+    tier: 0
+    icon: {fileID: 0}
+  - name: Watch {0} ad
+    id: race_watch_ad_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: watch_ad
+    target: 1
+    reward:
+      type: 2
+      id: 
+      amount: 80
+      icon: {fileID: 0}
+    group: 
+    tier: 0
+    icon: {fileID: 0}
+  - name: Win {0} games
+    id: race_win_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: win
+    target: 2
+    reward:
+      type: 2
+      id: 
+      amount: 250
+      icon: {fileID: 0}
+    group: 
+    tier: 0
+    icon: {fileID: 0}
+  - name: Earn {0} Cash
+    id: race_earn_1500
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: earn_soft
+    target: 1500
+    reward:
+      type: 3
+      id: 
+      amount: 10
+      icon: {fileID: 0}
+    group: 
+    tier: 0
+    icon: {fileID: 0}
+  - name: Play {0} games
+    id: race_play_5
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: play
+    target: 5
+    reward:
+      type: 2
+      id: 
+      amount: 150
+      icon: {fileID: 0}
+    group: 
+    tier: 0
+    icon: {fileID: 0}
+  - name: Win {0} game
+    id: race_win_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: win
+    target: 1
+    reward:
+      type: 2
+      id: 
+      amount: 80
+      icon: {fileID: 0}
+    group: 
+    tier: 0
+    icon: {fileID: 0}
+  missionsPerDay: 3
+  pickRandom: 0

@@ -8,21 +8,23 @@ public class CurrencyManager : MonoBehaviour
 {
     protected static CurrencyManager instance = null;
 
+    /// <summary>A CurrencyManager (HUD) is in the scene: Add* show the fly FX; without one they do nothing.</summary>
+    public static bool HasInstance => instance != null;
+
+    /// <summary>Opens the game's shop (the "+" of the currencies, the debug menu): the game sets it, e.g. the UI
+    /// sample's UIPopupIAP. Null = no shop.</summary>
+    public static System.Action OpenShop { get; set; }
+
     [SerializeField]
     protected Button softButton = null;
     [SerializeField]
     protected TextMeshProUGUI softLabel = null;
     [SerializeField]
     protected string softName = "Cash";
-    public static string SoftName
-    {
-        get
-        {
-            if (instance == null)
-                return "Cash";
-            return instance.softName;
-        }
-    }
+    public static string SoftName => Source != null ? Source.softName : "Cash";
+    [Tooltip("Shown next to Soft amounts in the shop and rewards.")]
+    [SerializeField]
+    protected Sprite softIcon = null;
     [SerializeField]
     protected ParticleLookAt softParticle = null;
     [SerializeField]
@@ -64,15 +66,10 @@ public class CurrencyManager : MonoBehaviour
     protected TextMeshProUGUI hardLabel = null;
     [SerializeField]
     protected string hardName = "Token";
-    public static string HardName
-    {
-        get
-        {
-            if (instance == null)
-                return "Token";
-            return instance.hardName;
-        }
-    }
+    public static string HardName => Source != null ? Source.hardName : "Token";
+    [Tooltip("Shown next to Hard amounts in the shop and rewards.")]
+    [SerializeField]
+    protected Sprite hardIcon = null;
     [SerializeField]
     protected ParticleLookAt hardParticle = null;
     [SerializeField]
@@ -175,12 +172,12 @@ public class CurrencyManager : MonoBehaviour
 
         if (softButton)
         {
-            softButton.onClick.AddListener(() => ZenStore.OpenShop?.Invoke());
+            softButton.onClick.AddListener(() => OpenShop?.Invoke());
         }
 
         if (hardButton)
         {
-            hardButton.onClick.AddListener(() => ZenStore.OpenShop?.Invoke());
+            hardButton.onClick.AddListener(() => OpenShop?.Invoke());
         }
     }
 
@@ -209,6 +206,50 @@ public class CurrencyManager : MonoBehaviour
     private void TotalHardParticleOnEmitDone(int obj)
     {
         //Debug.Log("TotalHardParticleOnEmitDone: " + obj);
+    }
+
+    // The CurrencyManager the names and icons come from: the running one; in the Editor without a game, the one of the
+    // open scene, else the CurrencyManager prefab.
+    private static CurrencyManager Source
+    {
+        get
+        {
+#if UNITY_EDITOR
+            if (instance == null && !Application.isPlaying)
+            {
+                var inScene = FindAnyObjectByType<CurrencyManager>(FindObjectsInactive.Include);
+                if (inScene != null)
+                    return inScene;
+                foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:Prefab CurrencyManager"))
+                {
+                    var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+                    if (prefab != null && prefab.TryGetComponent(out CurrencyManager found))
+                        return found;
+                }
+            }
+#endif
+            return instance;
+        }
+    }
+
+    /// <summary>The display name of a currency: SoftName / HardName; any other type: its enum name.</summary>
+    public static string NameOf(CurrencyType type)
+    {
+        switch (type)
+        {
+            case CurrencyType.Soft: return SoftName;
+            case CurrencyType.Hard: return HardName;
+            default: return type.ToString();
+        }
+    }
+
+    /// <summary>The icon of Soft / Hard (softIcon, hardIcon); null for any other type or when not set.</summary>
+    public static Sprite IconOf(CurrencyType type)
+    {
+        var source = Source;
+        if (source == null)
+            return null;
+        return type == CurrencyType.Soft ? source.softIcon : type == CurrencyType.Hard ? source.hardIcon : null;
     }
 
     public void AddSoftOnClick(int value)
@@ -259,14 +300,14 @@ public class CurrencyManager : MonoBehaviour
         else if (currency == CurrencyType.Soft)
         {
             DataManager.UserData.totalSoftCurrency += value;
-            if (ZenAnalytics.IsReady)
-                ZenAnalytics.LogResourceEarn(value, "Soft", CurrencyType.Soft, itemName);
+            if (AnalyticsManager.IsReady)
+                AnalyticsManager.LogResourceEarn(value, "Soft", CurrencyType.Soft, itemName);
         }
         else
         {
             DataManager.UserData.totalHardCurrency += value;
-            if (ZenAnalytics.IsReady)
-                ZenAnalytics.LogResourceEarn(value, HardName, CurrencyType.Hard, itemName);
+            if (AnalyticsManager.IsReady)
+                AnalyticsManager.LogResourceEarn(value, HardName, CurrencyType.Hard, itemName);
         }
         return true;
     }
@@ -277,12 +318,12 @@ public class CurrencyManager : MonoBehaviour
         {
             if (currency == CurrencyType.Soft)
             {
-                if (ZenAnalytics.IsReady)
+                if (AnalyticsManager.IsReady)
                 {
                     if (value > 100)
-                        ZenAnalytics.LogResourceEarn(value, instance.softName, CurrencyType.Soft, itemName);
+                        AnalyticsManager.LogResourceEarn(value, instance.softName, CurrencyType.Soft, itemName);
                     else if (value < -100)
-                        ZenAnalytics.LogResourceSpend(value, instance.softName, CurrencyType.Soft, itemName);
+                        AnalyticsManager.LogResourceSpend(value, instance.softName, CurrencyType.Soft, itemName);
                 }
 
                 SoftChanged = value;
@@ -307,12 +348,12 @@ public class CurrencyManager : MonoBehaviour
             }
             else
             {
-                if (ZenAnalytics.IsReady)
+                if (AnalyticsManager.IsReady)
                 {
                     if (value > 10)
-                        ZenAnalytics.LogResourceEarn(value, instance.hardName, CurrencyType.Hard, itemName);
+                        AnalyticsManager.LogResourceEarn(value, instance.hardName, CurrencyType.Hard, itemName);
                     else if (value < -10)
-                        ZenAnalytics.LogResourceSpend(value, instance.hardName, CurrencyType.Hard, itemName);
+                        AnalyticsManager.LogResourceSpend(value, instance.hardName, CurrencyType.Hard, itemName);
                 }
 
                 HardChanged = value;

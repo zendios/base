@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e92366913fa4549ea8673e4217ce1b16, type: 3}
+  m_Name: DailyLoginDatas
+  m_EditorClassIdentifier: Zen.Core::Base.DailyLoginDatas
+  list:
+  - name: Day 1
+    id: day_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 2
+      id: 
+      amount: 150
+    isSpecial: 0
+    icon: {fileID: 0}
+  - name: Day 2
+    id: day_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 4
+      id: booster_nitro
+      amount: 1
+    isSpecial: 0
+    icon: {fileID: 0}
+  - name: Day 3
+    id: day_3
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 2
+      id: 
+      amount: 250
+    isSpecial: 0
+    icon: {fileID: 0}
+  - name: Day 4
+    id: day_4
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 3
+      id: 
+      amount: 10
+    isSpecial: 0
+    icon: {fileID: 0}
+  - name: Day 5
+    id: day_5
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 4
+      id: booster_shield
+      amount: 1
+    isSpecial: 0
+    icon: {fileID: 0}
+  - name: Day 6
+    id: day_6
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 2
+      id: 
+      amount: 400
+    isSpecial: 0
+    icon: {fileID: 0}
+  - name: Day 7
+    id: day_7
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    reward:
+      type: 3
+      id: 
+      amount: 50
+    isSpecial: 1
+    icon: {fileID: 0}
+  resetOnMiss: 0
+  adDouble: 1
+  showOnHome: 1

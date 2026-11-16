@@ -1,0 +1,218 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7eaff3599298a473a9cccaba2775939e, type: 3}
+  m_Name: IAPPackDatas
+  m_EditorClassIdentifier: Zen.Core::Base.IAPPackDatas
+  list:
+  - name: Welcome Bundle
+    id: welcome_bundle
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 1
+    isSelected: 1
+    count: -1
+    productId: com.zendios.base.welcome_bundle
+    rewards:
+    - type: 2
+      id: 
+      amount: 3000
+      icon: {fileID: 0}
+    - type: 4
+      id: booster_nitro
+      amount: 2
+      icon: {fileID: 1545624986, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    badge: FIRST PURCHASE
+    icon: {fileID: 1680168260, guid: 06fd84d913854224bbf6a38ebb9ca715, type: 3}
+    isOffer: 0
+  - name: Core Bundle
+    id: core_bundle
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    productId: com.zendios.base.core_bundle
+    rewards:
+    - type: 2
+      id: 
+      amount: 10000
+      icon: {fileID: 0}
+    - type: 4
+      id: booster_nitro
+      amount: 3
+      icon: {fileID: 1545624986, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    - type: 4
+      id: booster_shield
+      amount: 3
+      icon: {fileID: -1917381562, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    - type: 4
+      id: booster_magnet
+      amount: 3
+      icon: {fileID: -409266150, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    badge: FEATURED
+    icon: {fileID: -1187200338, guid: 06fd84d913854224bbf6a38ebb9ca715, type: 3}
+    isOffer: 0
+  - name: Mini Pack
+    id: coins_mini
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    productId: com.zendios.base.coins_mini
+    rewards:
+    - type: 2
+      id: 
+      amount: 3000
+      icon: {fileID: 0}
+    badge: 
+    icon: {fileID: 76381684, guid: 06fd84d913854224bbf6a38ebb9ca715, type: 3}
+    isOffer: 0
+  - name: Value Pack
+    id: coins_value
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    productId: com.zendios.base.coins_value
+    rewards:
+    - type: 2
+      id: 
+      amount: 12000
+      icon: {fileID: 0}
+    badge: 
+    icon: {fileID: 522120553, guid: 06fd84d913854224bbf6a38ebb9ca715, type: 3}
+    isOffer: 0
+  - name: Large Pack
+    id: coins_large
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    productId: com.zendios.base.coins_large
+    rewards:
+    - type: 2
+      id: 
+      amount: 45000
+      icon: {fileID: 0}
+    badge: 
+    icon: {fileID: -2089588415, guid: 06fd84d913854224bbf6a38ebb9ca715, type: 3}
+    isOffer: 0
+  - name: Mega Vault
+    id: mega_vault
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    productId: com.zendios.base.mega_vault
+    rewards:
+    - type: 2
+      id: 
+      amount: 100000
+      icon: {fileID: 0}
+    - type: 4
+      id: booster_nitro
+      amount: 5
+      icon: {fileID: 1545624986, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    - type: 4
+      id: booster_shield
+      amount: 5
+      icon: {fileID: -1917381562, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    - type: 4
+      id: booster_magnet
+      amount: 5
+      icon: {fileID: -409266150, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    badge: BEST VALUE
+    icon: {fileID: 1700763278, guid: 06fd84d913854224bbf6a38ebb9ca715, type: 3}
+    isOffer: 0
+  - name: Remove Ads
+    id: remove_ads
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    productId: com.zendios.base.remove.ads
+    rewards:
+    - type: 1
+      id: 
+      amount: 1
+      icon: {fileID: 0}
+    badge: 
+    icon: {fileID: 1603750450, guid: 9567e9ee0136b484c8d72a16a9c530d3, type: 3}
+    isOffer: 1

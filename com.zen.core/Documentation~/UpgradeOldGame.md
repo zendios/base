@@ -39,7 +39,7 @@ Base's `UserData`, `GameConfig`, `GameData` are in the package: the game does no
 |---|---|
 | game fields on `UserData` (level point, nitro...) | a `[Serializable]` class with **the same field names**, saved by an `ISaveSection` |
 | `DataManager.StageDatas / VehicleDatas...` | a static class of the game (e.g. `GameDatas`) holding copies of the catalogues; its `ISaveSection` saves their save lists |
-| game fields on `GameConfig` | a ScriptableObject of the game in Resources (+ `ZenRemote` for remote values, same keys) |
+| game fields on `GameConfig` | a ScriptableObject of the game in Resources (+ `RemoteConfigManager` for remote values, same keys) |
 | `GameMode` (game values) | the game's own enum with the **same numbers** (Base has a `GameMode` too: add `-nowarn:0436` to `Assets/csc.rsp`) |
 
 Make the section's JSON use **the old GameData field names** (`stageDatas`, `vehicleDatas`, `userData`...): then
@@ -59,12 +59,12 @@ Other files the game wrote with `FileData.Save` (BinaryFormatter): switch to `Sa
 | `DataManager.AdConfig`, `AdsManager.Config` | `AdConfig.Instance` |
 | `AdsManager.LoadInter(...)` | `StartCoroutine(AdsManager.IELoadInter(...))` |
 | `AdsManager.InReview` | `DataManager.InReview` |
-| `FirebaseManager.LogEvent`, `FirebaseRemote` | `ZenAnalytics.LogEvent`, `ZenRemote` |
+| `FirebaseManager.LogEvent`, `FirebaseRemote` | `AnalyticsManager.LogEvent`, `RemoteConfigManager` |
 | `Base.Observer` (EventDispatcher) | removed: a C# `event` in the class that used it |
 | `PopupBase / PopupMessage / PopupIAP` | `UIPopupBase<T> / UIPopupMessage / UIPopupIAP` |
 
 Older generations (`AdsManager.ShowInterstitial / ShowVideoReward`, `AdsToast`, `UIToast`): `ShowInter / ShowReward`
-take `Action<AdType, AdState>` (**parameters swapped**), `AdToast`, `ZenToast`; `CurrencyManager.AddSoft` takes an
+take `Action<AdType, AdState>` (**parameters swapped**), `AdToast`; `CurrencyManager.AddSoft` takes an
 `itemName` second. Fix these one by one: a wrong argument order can still compile.
 
 ## 5. Scenes and prefabs
@@ -73,7 +73,7 @@ take `Action<AdType, AdState>` (**parameters swapped**), `AdToast`, `ZenToast`; 
   references to the `Base.*` class (re-add the component, or replace the script fileID in the YAML).
 - Scripts that moved into the package with a new GUID (`IAPButtonExtent`, `IAPManager`): point them to the package
   script, then fill new fields (IAP: `productId` from the CodelessIAPButton).
-- Splash: Package Manager > Base > Samples > Scenes. **Set DataManager.bundleVersion to the game's version code before
+- Splash: Base > Hub > Setup > Create. **Set DataManager.bundleVersion to the game's version code before
   saving**: its OnValidate writes it into Player Settings.
 - Ad IDs: Base > Hub > Ad IDs (old asset `Admob_Inter_Default` → `AdmobInterDefault`, `Zative_*` → `AdZative*`).
 - Scan prefabs and build scenes for missing scripts (`GameObjectUtility.GetMonoBehavioursWithMissingScriptCount`) and

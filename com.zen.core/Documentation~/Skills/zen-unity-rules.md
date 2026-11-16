@@ -50,7 +50,7 @@ Câu nào trả lời "không" thì dừng lại và chọn cách đơn giản h
 
 1. Sửa `Packages/com.zen.core`, `Packages/com.zen.plugins.adzative`, `Assets/Plugins`, SDK bên thứ ba, trừ khi việc được giao chính là sửa package đó trong `zen-unity`. Game thì mở rộng: kế thừa, prefab variant, override `virtual`.
 2. Sửa tay `.meta` hay GUID; đổi tên hoặc di chuyển asset bằng file system (chỉ `AssetDatabase.RenameAsset / MoveAsset`); xoá asset khi chưa tìm GUID trong mọi file YAML.
-3. Đổi tên hay di chuyển asset load bằng chuỗi (`Resources.Load`, `Resources/<ClassName>.prefab`, `ZenAdIds`, `AdConfig`, `ZenIapSettings`) mà không sửa code cùng lúc.
+3. Đổi tên hay di chuyển asset load bằng chuỗi (`Resources.Load`, `Resources/<ClassName>.prefab`, `AdIds`, `AdConfig`, `IAPSettings`) mà không sửa code cùng lúc.
 4. Đổi giá trị số của enum đã nằm trong save hoặc asset (`CurrencyType`, `PlacementType`, `GameState`...).
 5. Build APK/AAB, push, publish, release khi chưa được yêu cầu trong tin nhắn mới nhất. Compile check thì được.
 6. Đưa ad ID, key, `google-services.json` vào commit công khai. Thêm tay symbol `USE_*` hay `DOTWEEN`.
@@ -93,7 +93,8 @@ Câu nào trả lời "không" thì dừng lại và chọn cách đơn giản h
 - Subscribe event trong `OnEnable`, gỡ trong `OnDisable` / `OnDestroy`.
 - Callback SDK (AdMob, Firebase, IAP) đưa về main thread bằng `UnityMainThreadDispatcher.Enqueue` trước khi gọi Unity API.
 - Đọc dữ liệu người chơi sau `DataManager.IsLoaded` / `OnLoaded`. Bước khởi động mới gắn vào `AdSplash`, không tạo luồng khởi động thứ hai.
-- Dùng API có sẵn: `GameStateManager` (trạng thái), `UIManager` / `UIScreen` / `UIPopupBase<T>` (UI), `AdsManager.ShowInter / ShowReward` (ads), `CurrencyManager.AddSoft / AddHard`, `ZenAnalytics` / `ZenRemote` / `ZenToast`.
+- Dùng API có sẵn: `GameStateManager` (trạng thái), `UIManager` / `UIScreen` / `UIPopupBase<T>` (UI), `AdsManager.ShowInter / ShowReward` (ads), `CurrencyManager.AddSoft / AddHard`, `AnalyticsManager` / `RemoteConfigManager` / `AdToast.ShowNotice`.
+- Trước khi tích hợp hoặc dùng một manager (Splash cần gì, luồng thua / revive / interstitial, Remove Ads, popup, cài đặt âm thanh): đọc bảng **Managers** và mục **Pitfalls** trong `zen-unity/Packages/com.zen.core/AGENTS.md`. Không chép lại ở đây.
 
 ### KISS, DRY, SOLID ở mức vừa đủ
 

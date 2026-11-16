@@ -1,0 +1,23 @@
+{
+    "name": "Zen.Samples.Data.Editor",
+    "references": [
+        "Zen.Samples.Data",
+        "Zen.Core",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
+    "rootNamespace": "",
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "DOTWEEN"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -7,16 +7,15 @@ agents: [AGENTS.md](../AGENTS.md).
 ## 1. Layers
 
 ```
-Game (Assets/)          scenes, screens (UIScreen), popups, gameplay, Resources/ZenAdIds + AdConfig + ZenIapSettings
+Game (Assets/)          scenes, screens (UIScreen), popups, gameplay, Resources/AdIds + AdConfig + IAPSettings
 com.zen.core            managers (prefabs), services, UI framework, ads waterfall, IAP, Firebase, Base > Hub
 Base.dll (zen-base)     GameStateManager, DataManagerBase, ItemData(s), UIAnim / UIAnimManager, enums
 SDKs                    AdMob, EDM (Unity's External Dependency Manager), DOTween (required); Unity IAP, Firebase, AppsFlyer, Play Review / Update (optional)
 ```
 
 Optional SDKs switch their part on with a symbol Base sets by itself (`USE_IN_APP_PURCHASE`, `USE_FIREBASE`,
-`USE_APPSFLYER`, `USE_IN_APP_REVIEW`, `USE_IN_APP_UPDATE`). Inside the package the parts never call each other
-directly: they go through the static hooks `ZenAnalytics`, `ZenRemote`, `ZenStore`, `ZenToast` (section 8), so a
-missing SDK only turns calls into no-ops.
+`USE_APPSFLYER`, `USE_IN_APP_REVIEW`, `USE_IN_APP_UPDATE`). It is one assembly: the parts call each other directly,
+the code of an optional SDK sits under its symbol, so a missing SDK only turns its calls into no-ops (section 8).
 
 **Who owns a value** (highest layer wins): Firebase Remote Config > the game's `Assets/Resources` assets and prefab
 variants > the package defaults > the package code and prefabs (read-only).
@@ -35,7 +34,7 @@ variants > the package defaults > the package code and prefabs (read-only).
 | `CurrencyManager` | per scene | the scenes with a currency HUD |
 
 `AdSplash` (inside ADsManager) is the bootstrapper. Its `Start` runs, in order: mute audio, `ATTHelper.IECheck()`,
-`DataManager.IELoad()`, `UMP.Instance.IECheck()`, `AppsFlyerHelper.IEInit()`, `ZenRemote.Init()` + `Fetch()`, in-app
+`DataManager.IELoad()`, `UMP.Instance.IECheck()`, `AppsFlyerHelper.IEInit()`, `RemoteConfigManager.Init()` + `Fetch()`, in-app
 update check, `AdsManager.IEInit()`, preload of the FTUE open interstitial, then loads `loadSceneMainIndex` (Single) and
 `loadSceneGameIndex` (Additive, 0 = none), fades audio in, shows the open interstitial, `AdsManager.LoadAds()`.
 A game needs no code for any of this: it starts in its main scene with data loaded and ads initialised.
@@ -79,6 +78,9 @@ GameStateManager.WaitWin(); ... GameStateManager.Win();
 `GameStateListener` (component): `GameState state`, `UnityEvent onStateChanged`, `bool listeningOnDisable = true`:
 Inspector-only reactions to one state, no code.
 
+Every rule of the event, the listeners inside Base, how a game maps states to its UI, pitfalls and a diagram:
+[GameState.md](GameState.md).
+
 ## 4. Data: `DataManager` (global namespace, `: DataManagerBase`)
 
 One JSON save file named after `Application.identifier`, holding `GameData { version, timestamp, UserData userData,
@@ -107,7 +109,7 @@ public static bool InReview      { get; }           // GameConfig.bundleVersion 
 `totalTimePlay`, `currentLevel`, `adBanner`, `adInterstitial`, `adRewarded`, `adRewardSkipped`, `adTotal`, `abTesting`,
 `ua_*`, `winStreak`, `loseStreak`, `lifeTimeValue`; events `OnVIPChanged(bool)`, `OnRemovedAdsChanged(bool)`,
 `OnSoftCurrencyChanged(long changed, long value)`, `OnHardCurrencyChanged(...)`; `Init()`, `GetDaysSinceInstall()`,
-`CheckDailyLogin()`. Setters forward to `ZenAnalytics.SetUser` as user properties.
+`CheckDailyLogin()`. Setters forward to `AnalyticsManager.SetUser` as user properties.
 
 **GameConfigBase**: `bundleVersion`, `forceVersion`, `inAppUpdate`, `FTUE_Play`, `FTUE_Character`, `FTUE_Level`,
 `FTUE_LevelVariant`, `reviveType`, `reviveCountdown`, `reviveFree`, `reviveCountMax`...; filled from Remote Config.
@@ -148,7 +150,7 @@ public static T ShowScreen<T>(bool addToHistory = true) where T : UIScreen;   //
 public static bool Back();                                 // top popup → screen.OnBack → previous screen → OnBackAtRoot
 public static T ShowPopup<T>(bool destroyOnHide = true) where T : UIPopupBase<T>;
 public static void ClosePopup();  public static void CloseAllPopups();
-public static void Toast(string message);                  // ZenToast (AdToast when present, else the log)
+public static void Toast(string message);                  // AdToast.ShowNotice (into the log while no ADsManager is loaded)
 public static UIPopupMessage Message(string title, string message, Action onConfirm = null, string confirmLabel = "OK",
                                      Action onCancel = null, string cancelLabel = null);
 public static event Action<UIScreen> OnScreenChanged;  public static event Action<UIPopup, bool> OnPopupChanged;
@@ -194,7 +196,7 @@ OnOrientationChanged`. `OrientationLayout` saves a pose per orientation; put HUD
 ## 6. Ads: `AdsManager` (namespace `Base.Ads`)
 
 `ADsManager.prefab`: AdsManager + one child `AdBase` per placement (`Admob_Inter_Default`, `AdZative_Inter_Default`...).
-IDs come from `Resources/ZenAdIds` (one row per `PlacementType`, Android / iOS lists in waterfall order; a row without
+IDs come from `Resources/AdIds` (one row per `PlacementType`, Android / iOS lists in waterfall order; a row without
 IDs loads Google's test IDs), behaviour from `Resources/AdConfig` (`AdConfig.Instance`; `AdConfigRemote` applies
 Remote Config on top). Both are edited in **Base > Hub**.
 
@@ -232,9 +234,10 @@ AdsManager.ShowReward((type, state) =>
 AdBase.OnAnyStateChanged += (ad, state) => Debug.Log($"{ad.placement} {state}");
 ```
 
+Every key, the full decision flow, Remove Ads / VIP / IAP rewards and diagrams: [Ads.md](Ads.md).
 Timing rules (`AdConfig`): `adTimePlayToShow`, `adTimeBetween`, `adInterOnPlay / OnStart / OnComplete / OnFTUE`,
 `adBannerReload`, flows `adInterFlow` etc. (`AdFlow { OnlyNative, OnlyDefault, Both }`). A purchase
-(`ZenStore.OnPurchaseStarted`) holds interstitials for 60 s. `AdZative` is the native waterfall (Android): layouts,
+(`IAPButtonExtent` tapped: `AdsManager.DelayAdsForPurchase`) holds interstitials for 60 s. `AdZative` is the native waterfall (Android): layouts,
 pods, timing per prefab; see its public API in `Ads/Scripts/AdZative.cs`.
 
 Add a placement: duplicate an `Admob_*` / `AdZative_*` prefab as a variant, set its `placement`, add it under
@@ -249,35 +252,37 @@ public static int TotalSoft { get; set; }   public static int TotalHard { get; s
 public static void AddSoft(int value, string itemName, Transform from, Transform end = null, bool showFx = true); // ≤ 1,000,000
 public static void AddHard(int value, string itemName, Transform from, Transform end = null, bool showFx = true); // ≤ 1,000
 public static bool GrantFromPurchase(int value, CurrencyType currency, string itemName, Transform from, Transform end = null);
-// Add* log ZenAnalytics.LogResourceEarn / Spend (negative value = spend) and do nothing without an instance in the scene
+// Add* log AnalyticsManager.LogResourceEarn / Spend (negative value = spend) and do nothing without an instance in the scene
 ```
 
 **IAP** (`USE_IN_APP_PURCHASE`): `IAPManager.prefab` connects the Unity IAP store and loads the default catalog.
 `IAPButtonExtent` on a `Button_IAP` variant buys one product and describes its reward; `IAPManager.TryGrant` applies
 Remove Ads (`UserData.isRemovedAds`), VIP, Soft / Hard (via `CurrencyManager.GrantFromPurchase`) and raises
 `IAPManager.OnGrantReward(IAPButtonExtent, IAPReward)` for everything else (boosters, skins...): the game handles
-those. The Remove Ads product id is `ZenIapSettings.RemoveAdsProductId` (default `<bundle id>.remove.ads`).
-`UIPopupIAP` (`Resources/UIPopupIAP`) is the shop popup: `UIPopupIAP.Show()`; `ZenStore.OpenShop` points to it.
+those. The Remove Ads product id is `IAPSettings.RemoveAdsProductId` (default `<bundle id>.remove.ads`).
+`UIPopupIAP` (`Resources/UIPopupIAP`) is the shop popup: `UIPopupIAP.Show()`; `CurrencyManager.OpenShop` points to it.
+A `RemoveAdsButton` on any button sells Remove Ads (hidden without Unity IAP and once ads are removed); a
+`RestorePurchasesButton` restores purchases on iOS (`IAPManager.RestorePurchases`).
 
-## 8. Services: the hooks between parts (namespace `Base`, static classes)
+## 8. Analytics, Remote Config, notices (namespace `Base`, static classes)
 
 ```csharp
-ZenAnalytics.LogEvent("level_start", new Dictionary<string, object> { { "level", 3 } });
-ZenAnalytics.SetUser("vip", true);
-ZenAnalytics.LogIAP(screen, productId, IAPStatus.Success, localizedPrice, isoCurrencyCode);
-ZenAnalytics.LogResourceEarn(value, currencyName, CurrencyType.Soft, placement);   // LogResourceSpend likewise
+AnalyticsManager.LogEvent("level_start", new Dictionary<string, object> { { "level", 3 } });
+AnalyticsManager.SetUser("vip", true);
+AnalyticsManager.LogIAP(screen, productId, IAPStatus.Success, localizedPrice, isoCurrencyCode);
+AnalyticsManager.LogResourceEarn(value, currencyName, CurrencyType.Soft, placement);   // LogResourceSpend likewise
 // IAPStatus { Show, Click, Success, Failed, Close }
 
-ZenRemote.OnCollectDefaults += d => d["myKey"] = 3;                 // before Init
-ZenRemote.OnFetched += () => myValue = ZenRemote.GetInt("myKey", 3); // GetString / GetBool / GetFloat
-ZenRemote.Init(); ZenRemote.Fetch();                                 // coroutines; AdSplash runs them
+RemoteConfigManager.OnCollectDefaults += d => d["myKey"] = 3;                 // before Init
+RemoteConfigManager.OnFetched += () => myValue = RemoteConfigManager.GetInt("myKey", 3); // GetString / GetBool / GetFloat
+RemoteConfigManager.Init(); RemoteConfigManager.Fetch();                                 // coroutines; AdSplash runs them
 
-ZenToast.ShowNotice("Saved");            // AdToast when present, else Debug.Log
-ZenStore.OpenShop?.Invoke();             // set by the IAP part; OnPurchaseStarted holds interstitials
+AdToast.ShowNotice("Saved");            // into the log while no ADsManager is loaded
+CurrencyManager.OpenShop?.Invoke();     // the game's shop (the UI sample sets it to UIPopupIAP)
 ```
 
-`FirebaseZenBackend` (with `USE_FIREBASE`) registers `ZenAnalytics.Backend` and `ZenRemote.Backend` before the first
-scene; without Firebase the calls are no-ops and `Get*` return their defaults. `FirebaseManager` also offers
+`AnalyticsManager` and `RemoteConfigManager` call `FirebaseManager`; without Firebase (`USE_FIREBASE`) the calls are
+no-ops and `Get*` return their defaults. `FirebaseManager` also offers
 `LogLevel(...)`, `LogLevelUp`, `LogException`, `RemoteGetValue*`, `FetchAsync`.
 
 **UnityMainThreadDispatcher** (Base.dll): `Enqueue(Action)` / `Enqueue(IEnumerator)` from any thread (SDK callbacks).
@@ -288,7 +293,7 @@ scene; without Firebase the calls are no-ops and `Get*` return their defaults. `
 - Ads: subclass `AdBase` / `AdmobBase`; listen to `AdBase.OnAnyStateChanged`; prefab variants with a new `placement`.
 - Data: subclass `UserDataBase` fields in the game's `UserData`, `ItemDatas<T>` per catalogue, `GameConfig` fields.
 - UI flow: subclass `UIManager` and override `LoadScreen<T>` (Addressables), `ShowToast`, `ShowMessage`, `HandleBack`.
-- Settings: `Resources/AdConfig`, `ZenAdIds`, `ZenIapSettings`, prefab variants: all in the game, never in the package.
+- Settings: `Resources/AdConfig`, `AdIds`, `IAPSettings`, prefab variants: all in the game, never in the package.
 - Last resort: embed the package (copy to `Packages/`) to patch it; it then stops updating.
 
 ## 10. Lifetimes at a glance
@@ -298,3 +303,108 @@ scene; without Firebase the calls are no-ops and `Get*` return their defaults. `
 - Per scene (the newest one wins, a second one in the same scene is removed): UIManager, UIAnimManager,
   CurrencyManager.
 - `GameConfig` is a plain serializable class saved inside GameData, not an asset.
+
+## 11. Settings, audio and the meta features of the UI sample
+
+**GameSettings** (namespace `Base`, static): `SoundOn`, `MusicOn`, `SoundVolume`, `MusicVolume` (0 to 1; 0 also turns
+the sound / music off), `Quality` (a QualitySettings level or `QualityAuto`: from the device memory), saved in the save
+file (section `settings`, registered by itself), `VibrationOn` (= `HapticManager.IsOn`); events `OnSoundChanged`,
+`OnMusicChanged`, `OnVibrationChanged` (`Action<bool>`), `OnSoundVolumeChanged`, `OnMusicVolumeChanged`
+(`Action<float>`), raised when the save loads too. A change logs `settings_change {setting, on}`.
+
+**Audio** (`Runtime/Audio`, prefab `AudioManager` in the Splash, DontDestroyOnLoad): `SoundManager.Play(clip, volume,
+pitch)` / `PlayClick()` (a few reused AudioSources), `MusicManager.Play(clip)` / `Stop()` (fade between two looping
+sources, real time). Both follow GameSettings; without the prefab the calls do nothing. Vibration:
+`HapticManager.PlayImpact(style)`, silent while vibration is off.
+
+```csharp
+void OnEnable()  { GameSettings.OnSoundChanged += OnSound; GameSettings.OnMusicChanged += OnMusic; }
+void OnDisable() { GameSettings.OnSoundChanged -= OnSound; GameSettings.OnMusicChanged -= OnMusic; }
+void OnSound(bool on) => sfxSource.mute = !on;
+```
+
+**Datas and rewards**: the static data of these features are `ItemDatas` assets added to `DataManager.itemDatas` (read
+with `DataManager.Get<T>()`, like the game's skins): `DailyLoginDatas` (`DailyLoginData { reward, isSpecial, icon }`,
+one per day; `resetOnMiss`, `adDouble`, `showOnHome`), `DailyMissionDatas` (`MissionData`; `missionsPerDay`,
+`pickRandom`) and `AchievementDatas` (`MissionData` with `group` and `tier`). `MissionData { eventKey, target, reward,
+group, tier, icon }` uses `ItemData.id` (saved with the progress) and `name` (the title, `{0}` = target, `Title`).
+Every reward is `Reward { type, id, amount }`: `Soft` / `Hard` (CurrencyManager), `Booster` (adds to the count of the
+item `id` in a registered ItemDatas) or `Item` (`CurrencyType.Item`: the player owns item `id`). `Rewards.Grant(reward,
+source, from, times = 1)` grants one and saves; the game can use it for its own chests. `Reward.CanDouble`: only coins
+and boosters are offered x2 for an ad. The player's progress stays in save sections, not in the assets. A day opens only
+when the device date is later than the saved one: moving the clock back gives nothing.
+
+**Missions.Report(eventKey, amount = 1)** (namespace `Base`, static) is the one call for "the player did something": it
+moves the daily missions and the achievements listening to that key. Base reports `Missions.EventPlay` (a game started:
+`GameState.Play` not from Pause / Revive), `EventWin`, `EventLose`, `EventWatchAd` (a rewarded ad shown), `EventEarnSoft`
+(soft currency gained, the amount) and `EventUnlockItem` (an `Item` reward); the game reports its own keys, and
+`unlock_item` for items it sells or gives at start.
+
+**DailyLogin** (namespace `Base`, static): one reward per calendar day (device time) along `DailyLoginDatas`, starting
+again after the last day; progress in save section `daily_login`. `IsAvailable` (datas registered and Remote Config
+`dailyLogin_enabled`), `CanClaim`, `CanClaimDouble`, `NextDay`, `DayIndex`, `ClaimedCount`, `ClaimedToday`, `Cycle`,
+`Claim(Transform from)` (`Rewards.Grant`, fly FX from `from`), `ClaimDouble(from)` (rewarded ad `daily_login_x2`),
+`SetLastClaim(DateTime)` (debug), event `OnClaimed(int day, DailyLoginData data, bool doubled)`; logs
+`daily_login_claim`.
+
+```csharp
+if (DailyLogin.CanClaim) UIPopupDailyLogin.Show();       // the sample's home screen does this once per session
+DailyLogin.Claim(claimButton.transform);
+```
+
+**DailyMissions** (namespace `Base`, static): each calendar day `missionsPerDay` missions from `DailyMissionDatas`,
+taken in order (rotating: order the pool easy, medium, hard for one of each a day) or at random (the same on every
+device for the same day); progress in save section `daily_mission`, reset by the first read of a later day.
+`IsAvailable` (datas registered and Remote Config `dailyMission_enabled`), `Today` (`DailyMissionProgress { id, value,
+claimed, mission, IsDone, CanClaim }`), `HasClaimable`, `NextReset`, `Claim(id, Transform from)`, `ResetToday()`
+(debug), event `OnChanged`; logs `daily_mission_claim`.
+
+**Achievements** (namespace `Base`, static): lifetime goals from `AchievementDatas`. Progress is one lifetime counter
+per event key, so an achievement added by an update counts what the player already did; each group shows its lowest
+unclaimed tier (the last one once all are claimed). Save section `achievement`. `IsAvailable` (Remote Config
+`achievement_enabled`), `Visible`, `Progress(a)`, `IsClaimed(a)`, `CanClaim(a)`, `HasClaimable`, `Claim(id, from)`,
+event `OnChanged`; logs `achievement_claim {id, group, tier, type, amount}`.
+
+```csharp
+Missions.Report("collect_coin", coinsThisRun);             // daily missions and achievements on "collect_coin" advance
+if (DailyMissions.HasClaimable || Achievements.HasClaimable) dot.SetActive(true);
+DailyMissions.Claim(progress.id, claimButton.transform);
+```
+
+**NotificationManager** (namespace `Base`, static, needs `com.unity.mobile.notifications`: define `USE_NOTIFICATIONS`;
+without it, or in the Editor, `IsSupported` is false and nothing is sent): local reminders for Daily Login and Daily
+Missions. The OS is asked only after the player accepts the offer shown after claiming login day 1, 3 or 7
+(`ShouldOffer`, at most 3 offers; iOS shows its dialog once, Android twice). When the game goes to the background the
+rules of `NotificationPlanner` are scheduled (today 20:00 when rewards wait, then day +1, +3, +7 at the player's usual
+hour, never 21:30–08:00, nothing after day +7) with the texts of `NotificationDatas` (`name` = title, `description` =
+body, tokens `{day}` `{reward}` `{count}`); back in the game they are cancelled. A tapped reminder leaves a route for
+the home screen. Save section `notifications`, Remote Config `push_enabled`. `RemindersOn`, `IsAllowed`, `IsBlocked`,
+`ShouldOffer`, `IETurnOn(done)` (coroutine; opens the OS notification settings once it can no longer ask), `Decline()`,
+`TurnOff()`, `TakeRoute()`, `ScheduleTest(seconds)` / `ResetForDebug()` (debug), event `OnChanged`; logs `push_prompt`,
+`push_permission`, `push_scheduled`, `push_open`, `push_converted`. Android: turn on "Reschedule on Device Restart" in
+Project Settings > Mobile Notifications; iOS: keep "Request Authorization on App Launch" off.
+
+```csharp
+remindRow.SetActive(NotificationManager.ShouldOffer);        // after DailyLogin.Claim
+StartCoroutine(NotificationManager.IETurnOn(allowed => ...)); // "Remind me" or the Settings toggle
+switch (NotificationManager.TakeRoute()) { case NotificationPlanner.RouteDailyLogin: UIPopupDailyLogin.Show(); break; }
+```
+
+**UI sample** (Package Manager > Base > Samples > UI, scene `99_SampleScene`, see Gameplay.md for the flow):
+`UIScreenMain` (Play starts a game, Daily Login with a "reward waiting" dot, Missions and
+Achievements with a "reward ready" dot, Settings, Shop, "Quit?" on the back key at the root), `UIPopupDailyLogin` (`Resources/UIPopupDailyLogin`:
+a calendar of `UIDailyLoginCell` / `DailyLogin_Cell`, Claim, x2 with Ad), `UIPopupDailyMission` (`Resources/UIPopupDailyMission`:
+`UIDailyMissionRow` / `DailyMission_Row` with a progress bar and Claim / DONE, "Reset in hh:mm:ss" through
+`DateTime.ToCountDown()`), `UIPopupAchievements` (the same rows), the reminder offer in `UIPopupDailyLogin`, a Reminders toggle in `UIPopupSettings`, the home screen opening
+what a tapped reminder asks for, and the data
+of `GAME_DESIGN_SAMPLE_DATAS.md` section 6 in `Datas/` (7-day login, daily missions and achievement groups on the Base events,
+`SampleBoosterDatas`, reminder texts), registered on the DataManager of the Splash (Hub Setup > Add), `UIPopupSettings` (`Resources/UIPopupSettings`, a `Popup_Base`
+variant: sound / music volume, vibration, quality, Privacy through `UMP`, Rate through `InAppReview`, Restore through
+`RestorePurchasesButton` on iOS, Remove Ads through `RemoveAdsButton`, the version through
+`VersionInfo`; a button whose part of Base is missing hides itself), `Toggle_Base` (a switch built like `Button_Base`)
+and the Game Flow test panel. The logic is in the package; the UI is meant to be copied into the game
+(`Assets/Production/UI/...`) and restyled.
+
+**One prefab for portrait and landscape**: `ScreenUtils` (Expand) always shows the whole 1080×1920 or 1920×1080 design
+area, so a popup whose `ContentPane` stays within 1000×1000 fits both orientations; a screen uses anchors + `SafeArea`,
+and `OrientationLayout` only where the two orientations differ.

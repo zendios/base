@@ -245,14 +245,9 @@ namespace Base
                     ///    LogTaskCompletion(task, TAG + "SubscribeAsync");
                     ///});
 
-                    /// This will display the prompt to request permission to receive
-                    /// notifications if the prompt has not already been displayed before. (If
-                    /// the user already responded to the prompt, thier decision is cached by
-                    /// the OS and can be changed in the OS settings).
-                    FirebaseMessaging.RequestPermissionAsync().ContinueWith(task =>
-                    {
-                        MessageStatus = LogTaskCompletion(task, TAG + "Messaging RequestPermissionAsync");
-                    });
+                    // No permission request here: iOS shows its dialog only once, so NotificationManager asks after the
+                    // player accepts the reminder offer. FCM uses the same OS permission.
+                    MessageStatus = FirebaseStatus.Initialized;
                     Debug.Log(TAG + "Messaging " + "Initialized");
                 }
                 catch (FirebaseException ex)

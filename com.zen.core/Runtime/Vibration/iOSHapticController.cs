@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 
 // 'internal' ensures this class is only visible within your Unity project assembly,
-// promoting the use of the public 'HapticFeedback' wrapper.
+// promoting the use of the public 'HapticManager' class.
 
 internal static class iOSHapticController
 {
@@ -24,9 +24,9 @@ internal static class iOSHapticController
 #endif
 
     // --- Public API for iOS ---
-    // This method is called by the cross-platform HapticFeedback class.
+    // This method is called by the cross-platform HapticManager.
     // It takes the shared enum as a parameter for consistency.
-    public static void PlayImpact(HapticFeedback.ImpactStyle style)
+    public static void PlayImpact(HapticManager.ImpactStyle style)
     {
         // The #if UNITY_EDITOR directive is technically redundant here because the outer
         // #if UNITY_IOS already handles it, but it's good practice for clarity and safety
@@ -40,25 +40,25 @@ internal static class iOSHapticController
             switch (style)
             {
                 // For light UI feedback, Selection is the most appropriate.
-                case HapticFeedback.ImpactStyle.Light:
-                case HapticFeedback.ImpactStyle.Soft: // Soft can also be mapped to selection for a gentle tap.
+                case HapticManager.ImpactStyle.Light:
+                case HapticManager.ImpactStyle.Soft: // Soft can also be mapped to selection for a gentle tap.
                     _playSelectionHaptic();
                     break;
 
                 // For medium, heavy, and rigid feedback, Impact is the correct choice.
-                case HapticFeedback.ImpactStyle.Medium:
-                    _playImpactHaptic((int)HapticFeedback.ImpactStyle.Medium); // style = 1
+                case HapticManager.ImpactStyle.Medium:
+                    _playImpactHaptic((int)HapticManager.ImpactStyle.Medium); // style = 1
                     break;
-                case HapticFeedback.ImpactStyle.Heavy:
-                    _playImpactHaptic((int)HapticFeedback.ImpactStyle.Heavy);  // style = 2
+                case HapticManager.ImpactStyle.Heavy:
+                    _playImpactHaptic((int)HapticManager.ImpactStyle.Heavy);  // style = 2
                     break;
-                case HapticFeedback.ImpactStyle.Rigid:
-                    _playImpactHaptic((int)HapticFeedback.ImpactStyle.Rigid);  // style = 3
+                case HapticManager.ImpactStyle.Rigid:
+                    _playImpactHaptic((int)HapticManager.ImpactStyle.Rigid);  // style = 3
                     break;
 
                 // Note: We are not using _playNotificationHaptic here as it's semantically
                 // different (success, warning, error). If you need those, you would add
-                // a separate method in the HapticFeedback wrapper.
+                // a separate method in the HapticManager wrapper.
             }
         }
         catch (System.Exception e)

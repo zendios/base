@@ -15,7 +15,10 @@
         "Google.Play.Review",
         "Unity.Purchasing",
         "Unity.Purchasing.Stores",
-        "Unity.Purchasing.Codeless"
+        "Unity.Purchasing.Codeless",
+        "Unity.Notifications.Unified",
+        "Unity.Notifications.Android",
+        "Unity.Notifications.iOS"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -66,6 +69,11 @@
             "name": "com.unity.purchasing",
             "expression": "",
             "define": "USE_IN_APP_PURCHASE"
+        },
+        {
+            "name": "com.unity.mobile.notifications",
+            "expression": "",
+            "define": "USE_NOTIFICATIONS"
         }
     ],
     "noEngineReferences": false

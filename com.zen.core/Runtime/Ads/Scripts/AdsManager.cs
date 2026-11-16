@@ -16,15 +16,8 @@ namespace Base.Ads
 
         internal static DateTime LastTimeShowAd = DateTime.Now;
 
-        /// <summary>A purchase (com.zen.iap) holds interstitials for 60 s, so none pops over the store sheet.</summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void HoldAdsDuringPurchases()
-        {
-            ZenStore.OnPurchaseStarted -= DelayAdsForPurchase;
-            ZenStore.OnPurchaseStarted += DelayAdsForPurchase;
-        }
-
-        private static void DelayAdsForPurchase() => LastTimeShowAd = DateTime.Now.AddSeconds(60);
+        /// <summary>A purchase started (IAPButtonExtent): no interstitial for 60 s, so none pops over the store sheet.</summary>
+        internal static void DelayAdsForPurchase() => LastTimeShowAd = DateTime.Now.AddSeconds(60);
 
         internal static AdState lastStage = AdState.None;
 
@@ -43,6 +36,7 @@ namespace Base.Ads
         private static float preAdVolume = 1.0f;
         private static bool preAdAudioPause = false;
         private static bool pendingLoadAds = false;
+        private static bool pendingLoadInterOpen = false;
 
         /// <summary>A fullscreen ad (inter / reward / app open) currently holds the game paused.</summary>
         internal static bool IsFullscreenAdShowing => isAdCurrentlyPausingApp;
@@ -245,12 +239,12 @@ namespace Base.Ads
 
             if (!IsInitialized)
             {
-                ZenAnalytics.LogEvent("ad_manganger_init");
+                AnalyticsManager.LogEvent("ad_manganger_init");
                 yield return ADMOB.IEInit((onDone) =>
                 {
                     // Set first: an exception in the native init must never keep the whole ads stack uninitialized.
                     IsInitialized = onDone;
-                    ZenAnalytics.LogEvent("ad_manganger_init_" + onDone);
+                    AnalyticsManager.LogEvent("ad_manganger_init_" + onDone);
 
                     // The SDK can finish after the splash already called LoadAds (mediation adapters, up to ~30 s):
                     // run the session preload now instead of skipping it for the whole session.
@@ -271,8 +265,17 @@ namespace Base.Ads
                     UnityMainThreadDispatcher.Enqueue(IELoad(PlacementType.AdmobInterDefault, null, "init", ShowLoadingMode.None));
                 if (Config.adRewardFlow == AdFlow.OnlyDefault || Config.adRewardFlow == AdFlow.Both)
                     UnityMainThreadDispatcher.Enqueue(IELoad(PlacementType.AdmobRewardDefault, null, "init", ShowLoadingMode.None));
+                if (pendingLoadInterOpen && !IsRemovedAds)
+                    UnityMainThreadDispatcher.Enqueue(IELoad(PlacementType.AdmobInterOpen, null, "ftue", ShowLoadingMode.None));
+                pendingLoadInterOpen = false;
             }
         }
+
+        /// <summary>
+        /// The FTUE interstitial could not load at the splash (SDK init slower than its timeout): load it with the
+        /// session preload once the SDK is ready. The next ShowInter shows it (a ready interstitial goes first).
+        /// </summary>
+        internal static void LoadInterOpenOnInit() => pendingLoadInterOpen = true;
 
         public static void HandleAdPauseState(bool pause)
         {
@@ -414,10 +417,14 @@ namespace Base.Ads
             Log($"Attempting check all inters to show interstitial for: {itemName}");
             // Respect AdFlow: an AdMob interstitial only when adInterFlow allows AdMob, a native one only when it allows native
             // (a stale ready ad from another flow - e.g. after Remote Config changed the flow - must not bypass it).
-            var checkInter = Placements.FirstOrDefault(p => p.Value != null && (p.Value.type == AdType.Inter) && IsAllowedByInterFlow(p.Value) && p.Value.isCanShow);
-            if (checkInter.Value != null)
+            // A ready FTUE interstitial (it missed the splash: SDK init or the load was too slow) goes first.
+            var readyInter = Placements.Values
+                .Where(ad => ad != null && ad.type == AdType.Inter && IsAllowedByInterFlow(ad) && ad.isCanShow)
+                .OrderBy(ad => IsInterOpen(ad.placement) ? 0 : 1)
+                .FirstOrDefault();
+            if (readyInter != null)
             {
-                yield return checkInter.Value.IEShowAd(callback, itemName, delayShow); // Instant pop if interstitial is ready
+                yield return readyInter.IEShowAd(callback, itemName, delayShow); // Instant pop if interstitial is ready
                 yield break;
             }
 
@@ -445,6 +452,9 @@ namespace Base.Ads
                 yield return IELoadShow(PlacementType.AdZativeInterDefault, callback, itemName);
             }
         }
+
+        private static bool IsInterOpen(PlacementType placement) =>
+            placement == PlacementType.AdmobInterOpen || placement == PlacementType.AdZativeInterOpen;
 
         private static bool IsAllowedByInterFlow(AdBase ad)
         {
@@ -485,9 +495,23 @@ namespace Base.Ads
 
         /// <summary>
         /// Rewarded by adRewardFlow (Remote Config): OnlyDefault = AdMob, OnlyNative = native, Both = AdMob first and the
-        /// native rewarded when AdMob has no ad. A ready ad is shown at once; the caller gets one terminal result.
+        /// native rewarded when AdMob has no ad. A ready ad is shown at once. The caller gets exactly one result:
+        /// ShowSuccess (reward earned), Close (closed without a reward) or why no ad showed.
         /// </summary>
         public static IEnumerator IEShowReward(Action<AdType, AdState> callback, string itemName, ShowLoadingMode showLoadingMode = ShowLoadingMode.Toast, float delayShow = 0f)
+        {
+            var result = new RewardResult();
+            yield return IEShowRewardFlow(result.Collect, itemName, showLoadingMode, delayShow);
+            while (!result.IsDone)
+            {
+                yield return null;
+                result.Wait(Mathf.Min(Time.unscaledDeltaTime, 0.1f));   // time paused behind the ad does not count
+            }
+            Log($"Rewarded result {result}. Trigger: {itemName}");
+            callback?.Invoke(result.Type, result.State);
+        }
+
+        private static IEnumerator IEShowRewardFlow(Action<AdType, AdState> callback, string itemName, ShowLoadingMode showLoadingMode, float delayShow)
         {
             Placements.TryGetValue(PlacementType.AdmobRewardDefault, out AdBase admob);
             Placements.TryGetValue(PlacementType.AdZativeRewardDefault, out AdBase native);

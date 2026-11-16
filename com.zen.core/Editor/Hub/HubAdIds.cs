@@ -12,23 +12,23 @@ namespace Base.Setup
     /// Ad IDs: Android / iOS tabs (the build target's tab opens first), one row per PlacementType (several IDs =
     /// waterfall order), paste from a Google Sheet, checks.
     /// </summary>
-    internal class HubAdIds : IZenHubTab
+    internal class HubAdIds : IHubTab
     {
         public string Title => "Ad IDs";
 
         private static readonly Regex AnyId = new Regex(@"ca-app-pub-\d+/\d+");
 
-        private ZenAdIds ids;
+        private AdIds ids;
         private SerializedObject so;
         private Vector2 scroll;
         private int platform = -1;   // 0 Android, 1 iOS
-        private List<ZenSetupIssue> issues = new List<ZenSetupIssue>();
+        private List<SetupIssue> issues = new List<SetupIssue>();
 
         public void OnEnable()
         {
             if (platform < 0)
                 platform = EditorUserBuildSettings.activeBuildTarget == BuildTarget.iOS ? 1 : 0;
-            ids = Resources.Load<ZenAdIds>(ZenAdIds.ResourcePath);
+            ids = Resources.Load<AdIds>(AdIds.ResourcePath);
             so = ids != null ? new SerializedObject(ids) : null;
             if (ids != null && ids.AddMissingPlacements())
             {
@@ -40,18 +40,18 @@ namespace Base.Setup
 
         private void Recheck()
         {
-            issues = ids == null ? new List<ZenSetupIssue>()
-                : ZenBuildCheck.CheckIds(ids, ZenBuildCheck.AdMobAppId(out _), MessageType.Error).Where(i => i.type != MessageType.Info).ToList();
+            issues = ids == null ? new List<SetupIssue>()
+                : BuildCheck.CheckIds(ids, BuildCheck.AdMobAppId(out _), MessageType.Error).Where(i => i.type != MessageType.Info).ToList();
         }
 
         public void OnGUI()
         {
             if (ids == null)
             {
-                EditorGUILayout.HelpBox("No ZenAdIds in Assets/Resources: every placement loads Google test IDs.", MessageType.Error);
-                if (GUILayout.Button("Create Assets/Resources/ZenAdIds", GUILayout.Width(260)))
+                EditorGUILayout.HelpBox("No AdIds in Assets/Resources: every placement loads Google test IDs.", MessageType.Error);
+                if (GUILayout.Button("Create Assets/Resources/AdIds", GUILayout.Width(260)))
                 {
-                    ZenSetupUtil.CreateResource<ZenAdIds>(ZenAdIds.ResourcePath, a => a.AddMissingPlacements());
+                    SetupUtil.CreateResource<AdIds>(AdIds.ResourcePath, a => a.AddMissingPlacements());
                     OnEnable();
                 }
                 return;
@@ -71,10 +71,10 @@ namespace Base.Setup
             var entries = so.FindProperty("entries");
             scroll = EditorGUILayout.BeginScrollView(scroll);
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Placement", ZenHub.Note, GUILayout.Width(170));
-            GUILayout.Label((ios ? "iOS" : "Android") + " IDs (one per line, waterfall order)", ZenHub.Note, GUILayout.MinWidth(150));
+            GUILayout.Label("Placement", BaseHub.Note, GUILayout.Width(170));
+            GUILayout.Label((ios ? "iOS" : "Android") + " IDs (one per line, waterfall order)", BaseHub.Note, GUILayout.MinWidth(150));
             EditorGUILayout.EndHorizontal();
-            string publisher = ios ? null : ZenBuildCheck.AdMobAppId(out _)?.Split('~')[0];
+            string publisher = ios ? null : BuildCheck.AdMobAppId(out _)?.Split('~')[0];
             for (int i = 0; i < entries.arraySize; i++)
             {
                 var e = entries.GetArrayElementAtIndex(i);
@@ -83,7 +83,7 @@ namespace Base.Setup
                 bool empty = !Enumerable.Range(0, list.arraySize).Any(k => !string.IsNullOrWhiteSpace(list.GetArrayElementAtIndex(k).stringValue));
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField(new GUIContent(placement.ToString(), empty ? "No ID: this placement loads Google test ads" : null),
-                    empty ? ZenHub.Warn : ZenHub.Body, GUILayout.Width(170));
+                    empty ? BaseHub.Warn : BaseHub.Body, GUILayout.Width(170));
                 ListField(list, publisher, empty);
                 EditorGUILayout.EndHorizontal();
             }
@@ -91,9 +91,9 @@ namespace Base.Setup
             if (so.ApplyModifiedProperties())
                 Recheck();
 
-            EditorGUILayout.LabelField("Yellow = no ID (the placement loads Google test ads; fine if the game does not use it). Red = malformed, Google test or other-account ID.", ZenHub.NoteWrapped);
+            EditorGUILayout.LabelField("Yellow = no ID (the placement loads Google test ads; fine if the game does not use it). Red = malformed, Google test or other-account ID.", BaseHub.NoteWrapped);
             GUILayout.Space(4);
-            ZenHub.Issues(issues);
+            BaseHub.Issues(issues);
         }
 
         /// <summary>A string list as a multi-line text box; IDs that look wrong turn red, an empty list yellow.</summary>
@@ -101,11 +101,11 @@ namespace Base.Setup
         {
             var values = Enumerable.Range(0, list.arraySize).Select(k => list.GetArrayElementAtIndex(k).stringValue).ToList();
             string text = string.Join("\n", values);
-            bool bad = values.Any(v => !string.IsNullOrWhiteSpace(v) && (!AnyId.IsMatch(v.Trim()) || v.StartsWith(ZenBuildCheck.GoogleTestPublisher)
-                                                                         || (publisher != null && !publisher.StartsWith(ZenBuildCheck.GoogleTestPublisher) && !v.Trim().StartsWith(publisher + "/"))));
+            bool bad = values.Any(v => !string.IsNullOrWhiteSpace(v) && (!AnyId.IsMatch(v.Trim()) || v.StartsWith(BuildCheck.GoogleTestPublisher)
+                                                                         || (publisher != null && !publisher.StartsWith(BuildCheck.GoogleTestPublisher) && !v.Trim().StartsWith(publisher + "/"))));
             var old = GUI.backgroundColor;
-            if (bad) GUI.backgroundColor = ZenHub.Bad;
-            else if (empty) GUI.backgroundColor = ZenHub.Changed;
+            if (bad) GUI.backgroundColor = BaseHub.Bad;
+            else if (empty) GUI.backgroundColor = BaseHub.Changed;
             int lines = Mathf.Max(1, values.Count);
             string next = EditorGUILayout.TextArea(text, GUILayout.Height(18 * lines + 2), GUILayout.MinWidth(150));
             GUI.backgroundColor = old;

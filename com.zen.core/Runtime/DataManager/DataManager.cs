@@ -349,7 +349,7 @@ public class DataManager : DataManagerBase
         {
             var backup = BackupSaveFile(path, ".unreadable");
             Debug.LogError($"DataManager: save file unreadable ({error}), kept as {backup}");
-            ZenAnalytics.LogEvent("save_unreadable", new Dictionary<string, object> { { "error", error } });
+            AnalyticsManager.LogEvent("save_unreadable", new Dictionary<string, object> { { "error", error } });
             return null;
         }
 
@@ -362,7 +362,7 @@ public class DataManager : DataManagerBase
         catch (Exception ex)
         {
             Debug.LogException(ex);
-            ZenAnalytics.LogEvent("save_legacy_failed", new Dictionary<string, object> { { "error", ex.Message } });
+            AnalyticsManager.LogEvent("save_legacy_failed", new Dictionary<string, object> { { "error", ex.Message } });
             return null;
         }
 
@@ -384,7 +384,7 @@ public class DataManager : DataManagerBase
             Debug.LogException(ex);
             result = ex.GetType().Name;
         }
-        ZenAnalytics.LogEvent("save_legacy_migrated", new Dictionary<string, object> { { "result", result } });
+        AnalyticsManager.LogEvent("save_legacy_migrated", new Dictionary<string, object> { { "result", result } });
     }
 
     // Copies the file to <file><suffix>; an earlier backup with that name is never overwritten.
@@ -441,7 +441,7 @@ public class DataManager : DataManagerBase
         {
             instance.SaveJsonAsync<GameData>(GameData, (ex) =>
             {
-                ZenToast.ShowNotice(ex.Message);
+                AdToast.ShowNotice(ex.Message);
                 Debug.LogError("SaveJsonAsync IsLoaded: " + ex.Message);
             }, DebugMode.IsOn);
         }
@@ -449,7 +449,7 @@ public class DataManager : DataManagerBase
         {
             instance.SaveJson<GameData>(GameData, (ex) =>
             {
-                ZenToast.ShowNotice(ex.Message);
+                AdToast.ShowNotice(ex.Message);
                 Debug.LogError("SaveJson IsLoaded: " + ex.Message);
             }, DebugMode.IsOn);
         }
@@ -461,7 +461,7 @@ public class DataManager : DataManagerBase
         UserData.totalHardCurrency += 1000;
         Save(true);
 
-        ZenToast.ShowNotice("Everything is unlocked!");
+        AdToast.ShowNotice("Everything is unlocked!");
     }
 
     /// <summary>Deletes the save file and the trial times (stored in PlayerPrefs under each item's id).</summary>

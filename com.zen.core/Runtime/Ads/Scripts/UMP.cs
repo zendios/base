@@ -229,7 +229,7 @@ namespace Base.Ads
             UnityMainThreadDispatcher.Enqueue(() =>
             {
                 Debug.Log(TAG + "Showing privacy options form...");
-                ZenAnalytics.LogEvent("ump_option_show");
+                AnalyticsManager.LogEvent("ump_option_show");
                 IsFormShowing = true;
                 ConsentForm.ShowPrivacyOptionsForm((FormError error) =>
                 {
@@ -238,12 +238,12 @@ namespace Base.Ads
                     {
                         Debug.LogError(TAG + "Showing privacy options form - ERROR " + error.Message);
                         AdToast.ShowNotice("ERROR: " + error.Message);
-                        ZenAnalytics.LogEvent("ump_option_show_error", new Dictionary<string, object> { { "error", error.Message } });
+                        AnalyticsManager.LogEvent("ump_option_show_error", new Dictionary<string, object> { { "error", error.Message } });
                     }
                     else  // Form showing succeeded.
                     {
                         Debug.Log(TAG + "Showing privacy options form - SUCCESS");
-                        ZenAnalytics.LogEvent("ump_option_show_success");
+                        AnalyticsManager.LogEvent("ump_option_show_success");
                     }
                 });
             });
@@ -257,14 +257,14 @@ namespace Base.Ads
             UnityMainThreadDispatcher.Enqueue(() =>
             {
                 AdToast.ShowNotice("Ooop...! \"We\" want asks for your consent to improve the best experience!", 3f);
-                ZenAnalytics.LogEvent("ump_reset");
+                AnalyticsManager.LogEvent("ump_reset");
                 ConsentInformation.Reset();
             });
         }
 
         public void OpenPrivacyPolicy()
         {
-            ZenAnalytics.LogEvent("ump_open_privacy");
+            AnalyticsManager.LogEvent("ump_open_privacy");
             if (!string.IsNullOrEmpty(adConfig.urlPrivacyPolicy))
                 Application.OpenURL(adConfig.urlPrivacyPolicy);
             else
@@ -274,7 +274,7 @@ namespace Base.Ads
 
         public void OpenTermsOfService()
         {
-            ZenAnalytics.LogEvent("ump_open_terms");
+            AnalyticsManager.LogEvent("ump_open_terms");
             if (!string.IsNullOrEmpty(adConfig.urlTermsOfService))
                 Application.OpenURL(adConfig.urlTermsOfService);
             else

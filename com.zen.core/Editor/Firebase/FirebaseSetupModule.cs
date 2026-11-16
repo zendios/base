@@ -13,16 +13,16 @@ using Debug = UnityEngine.Debug;
 namespace Base
 {
     /// <summary>Firebase: the Firebase SDK packages and google-services.json.</summary>
-    internal class FirebaseSetupModule : IZenSetupModule
+    internal class FirebaseSetupModule : ISetupModule
     {
         public string Name => "Firebase";
         public int Order => 30;
 
-        public IEnumerable<ZenSetupIssue> Check()
+        public IEnumerable<SetupIssue> Check()
         {
             bool sdk = AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Firebase.App");
             if (!sdk)
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = $"Firebase SDK not installed (optional): Install downloads Firebase {FirebaseInstaller.Pinned} from Google. Until then analytics and Remote Config do nothing.",
                     type = MessageType.Info,
@@ -30,7 +30,7 @@ namespace Base
                     fix = () => FirebaseInstaller.Install(FirebaseInstaller.Pinned),
                 };
             if (sdk && !Directory.GetFiles("Assets", "google-services.json", SearchOption.AllDirectories).Any())
-                yield return new ZenSetupIssue
+                yield return new SetupIssue
                 {
                     message = "No google-services.json under Assets (download it from the Firebase console for this app's package name).",
                     type = MessageType.Error,

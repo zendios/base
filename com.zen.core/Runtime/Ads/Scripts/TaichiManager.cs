@@ -342,7 +342,7 @@ namespace Base.Ads
 
         private void LogTaichiConversion(string eventName, double value, string currency, int tierPercent, double lifeTimeValue)
         {
-            ZenAnalytics.LogEventExact(eventName, new Dictionary<string, object>
+            AnalyticsManager.LogEventExact(eventName, new Dictionary<string, object>
             {
                 { "value", value },
                 { "currency", currency },

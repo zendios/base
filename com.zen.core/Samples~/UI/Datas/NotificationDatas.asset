@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ca13c3880d2549e4a4cefbd94e1769e, type: 3}
+  m_Name: NotificationDatas
+  m_EditorClassIdentifier: Zen.Core::Base.NotificationDatas
+  list:
+  - name: "\U0001F381 Day {day} reward is ready"
+    id: daily_ready_01
+    idThumb: 
+    index: 0
+    description: '{reward} is waiting, plus 3 new missions.'
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: daily_ready
+  - name: Your daily gift is here
+    id: daily_ready_02
+    idThumb: 
+    index: 0
+    description: Open to claim {reward}. New missions are live too.
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: daily_ready
+  - name: New day, new missions
+    id: daily_ready_03
+    idThumb: 
+    index: 0
+    description: '3 fresh missions and your Day {day} reward: {reward}.'
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: daily_ready
+  - name: "\U0001F3C6 {count} rewards to collect"
+    id: rewards_waiting_01
+    idThumb: 
+    index: 0
+    description: Claim them before midnight.
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: rewards_waiting
+  - name: Don't leave rewards behind
+    id: rewards_waiting_02
+    idThumb: 
+    index: 0
+    description: Your mission rewards reset at midnight.
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: rewards_waiting
+  - name: Missions complete!
+    id: rewards_waiting_03
+    idThumb: 
+    index: 0
+    description: Tap to collect what you earned today.
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: rewards_waiting
+  - name: Your Day {day} reward is waiting
+    id: comeback_d3_01
+    idThumb: 
+    index: 0
+    description: It's still yours. Claim it anytime.
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: comeback_d3
+  - name: We saved your progress
+    id: comeback_d3_02
+    idThumb: 
+    index: 0
+    description: 'Pick up where you left off: {reward} is ready.'
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: comeback_d3
+  - name: Still here for you
+    id: comeback_d7_01
+    idThumb: 
+    index: 0
+    description: Day {day} reward and new missions are waiting.
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    type: comeback_d7

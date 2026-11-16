@@ -44,13 +44,13 @@ namespace Base.Ads
             Validate();
         }
 
-        /// <summary>Lists the placements of the game's ZenAdIds that have no ID (they load Google test IDs).</summary>
+        /// <summary>Lists the placements of the game's AdIds that have no ID (they load Google test IDs).</summary>
         public void Validate()
         {
-            var ids = ZenAdIds.Instance;
+            var ids = AdIds.Instance;
             if (ids == null)
             {
-                Debug.LogWarning("ZenAdIds: no Resources/ZenAdIds asset in the game (Base > Hub > Setup creates it) --> every placement uses Google test IDs");
+                Debug.LogWarning("AdIds: no Resources/AdIds asset in the game (Base > Hub > Setup creates it) --> every placement uses Google test IDs");
                 return;
             }
 
@@ -60,9 +60,9 @@ namespace Base.Ads
                     continue;
                 var list = ids.Get(p);
                 if (list.Count == 0)
-                    Debug.LogWarning($"ZenAdIds: {p} has no ID --> Google test ID");
+                    Debug.LogWarning($"AdIds: {p} has no ID --> Google test ID");
                 else
-                    Debug.Log($"ZenAdIds: {p} --> {string.Join(", ", list)}");
+                    Debug.Log($"AdIds: {p} --> {string.Join(", ", list)}");
             }
         }
     }

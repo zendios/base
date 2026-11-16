@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 822327177757093247}
   - component: {fileID: 4550081773461292941}
   m_Layer: 5
-  m_Name: PopupBackground
+  m_Name: Popup_Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 72b04787e42db334da5038984a913aa7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 568395351d9f06b46b9b9fb3df6b3092, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

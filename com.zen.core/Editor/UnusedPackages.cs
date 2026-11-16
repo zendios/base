@@ -101,7 +101,7 @@ namespace Base.Setup
 
         public void Draw(Dictionary<string, PackageInfo> installed, Action changed)
         {
-            ZenHub.Header("Unused packages", "Packages (built-in modules included) the game does not use: not referenced by any compiled code, " +
+            BaseHub.Header("Unused packages", "Packages (built-in modules included) the game does not use: not referenced by any compiled code, " +
                                              "not in any scene / prefab / asset, not needed by another package. Check the list before removing.");
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             using (new EditorGUI.DisabledScope(request != null))
@@ -141,8 +141,8 @@ namespace Base.Setup
                 EditorGUILayout.BeginHorizontal();
                 using (new EditorGUI.DisabledScope(r.usedBy != null))
                     r.selected = EditorGUILayout.Toggle(r.selected && r.usedBy == null, GUILayout.Width(18));
-                EditorGUILayout.LabelField(r.id.Replace("com.unity.modules.", "module: "), ZenHub.Body, GUILayout.Width(260));
-                EditorGUILayout.LabelField(r.usedBy == null ? "Unused" : "In use: " + r.usedBy, r.usedBy == null ? ZenHub.Good : ZenHub.Muted);
+                EditorGUILayout.LabelField(r.id.Replace("com.unity.modules.", "module: "), BaseHub.Body, GUILayout.Width(260));
+                EditorGUILayout.LabelField(r.usedBy == null ? "Unused" : "In use: " + r.usedBy, r.usedBy == null ? BaseHub.Good : BaseHub.Muted);
                 EditorGUILayout.EndHorizontal();
             }
         }

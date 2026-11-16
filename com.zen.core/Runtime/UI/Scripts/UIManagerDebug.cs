@@ -73,7 +73,7 @@ public class UIManagerDebug : MonoBehaviour
             onConfirm: () => UIManager.Toast("Confirmed"), confirmLabel: "Yes",
             onCancel: () => UIManager.Toast("Cancelled"), cancelLabel: "No");
 
-    public virtual void ShowPopupIAP() => UIManager.ShowPopup<UIPopupIAP>();
+    public virtual void ShowPopupIAP() => CurrencyManager.OpenShop?.Invoke();
 
     public virtual void ClosePopup() => UIManager.ClosePopup();
 

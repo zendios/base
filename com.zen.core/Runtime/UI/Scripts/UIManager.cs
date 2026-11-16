@@ -8,7 +8,7 @@ using UnityEngine;
 /// One entry point for the game's UI: screens (one at a time, with a history), popups (a stack), toasts and the
 /// message popup, plus the back key (Android back / Escape).
 ///   UIManager.ShowScreen&lt;HomeScreen&gt;();  UIManager.Back();
-///   UIManager.ShowPopup&lt;UIPopupIAP&gt;();     UIManager.ClosePopup();  UIManager.CloseAllPopups();
+///   UIManager.ShowPopup&lt;UIPopupX&gt;();       UIManager.ClosePopup();  UIManager.CloseAllPopups();
 ///   UIManager.Message("Error", "No connection", onConfirm: Retry);   UIManager.Toast("Saved");
 /// Put a UIManager (or a subclass) in the scene to change its settings or behaviour: every step is a virtual method.
 /// Without one, the first call creates a default UIManager.
@@ -23,6 +23,7 @@ public class UIManager : MonoBehaviour
     protected readonly List<UIScreen> screens = new List<UIScreen>();   // registered (scene or loaded)
     protected readonly List<UIScreen> history = new List<UIScreen>();   // last = current screen
     protected readonly List<UIPopup> popups = new List<UIPopup>();      // last = top popup
+    private readonly HashSet<UIScreen> justLoaded = new HashSet<UIScreen>();   // instantiated, UIAnim not started yet
 
     /// <summary>The current screen changed (null = none).</summary>
     public static event Action<UIScreen> OnScreenChanged;
@@ -148,6 +149,7 @@ public class UIManager : MonoBehaviour
         var screen = Instantiate(prefab, UIAnimManager.RootTransform);
         screen.name = typeof(T).Name;
         RegisterScreen(screen);
+        justLoaded.Add(screen);
         return screen;
     }
 
@@ -162,7 +164,11 @@ public class UIManager : MonoBehaviour
             history.Clear();
         history.Remove(screen);
         history.Add(screen);
-        screen.Open();
+        // A screen instantiated this frame: its UIAnim would hide it in Start, after Open; it shows itself at start instead.
+        if (justLoaded.Remove(screen))
+            screen.OpenAtStart();
+        else
+            screen.Open();
         OnScreenChanged?.Invoke(screen);
     }
 
@@ -230,8 +236,8 @@ public class UIManager : MonoBehaviour
 
     // ---- toast / message ----
 
-    /// <summary>Short notice (ZenToast: AdToast when it is there, else the log). Override for another toast.</summary>
-    public virtual void ShowToast(string message) => ZenToast.ShowNotice(message);
+    /// <summary>Short notice (AdToast when it is there, else the log). Override for another toast.</summary>
+    public virtual void ShowToast(string message) => Base.Ads.AdToast.ShowNotice(message);
 
     /// <summary>The UIPopupMessage popup. Override for another message popup.</summary>
     public virtual UIPopupMessage ShowMessage(string title, string message, Action onConfirm, string confirmLabel, Action onCancel, string cancelLabel) =>

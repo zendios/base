@@ -1,0 +1,327 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41d8b9a135403416885cf69e930a13ac, type: 3}
+  m_Name: AchievementDatas
+  m_EditorClassIdentifier: Zen.Core::Base.AchievementDatas
+  list:
+  - name: 'Rookie: play {0} games'
+    id: ach_race_play_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 1
+    isSelected: 1
+    count: -1
+    eventKey: play
+    target: 5
+    reward:
+      type: 2
+      id: 
+      amount: 200
+      icon: {fileID: 0}
+    group: play
+    tier: 1
+    icon: {fileID: 0}
+  - name: 'Regular: play {0} games'
+    id: ach_race_play_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: play
+    target: 50
+    reward:
+      type: 2
+      id: 
+      amount: 500
+      icon: {fileID: 0}
+    group: play
+    tier: 2
+    icon: {fileID: 0}
+  - name: 'Legend: play {0} games'
+    id: ach_race_play_3
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: play
+    target: 200
+    reward:
+      type: 3
+      id: 
+      amount: 30
+      icon: {fileID: 0}
+    group: play
+    tier: 3
+    icon: {fileID: 0}
+  - name: 'Winner: win {0} games'
+    id: ach_top3_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: win
+    target: 5
+    reward:
+      type: 2
+      id: 
+      amount: 200
+      icon: {fileID: 0}
+    group: win
+    tier: 1
+    icon: {fileID: 0}
+  - name: 'Champion: win {0} games'
+    id: ach_top3_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: win
+    target: 50
+    reward:
+      type: 2
+      id: 
+      amount: 500
+      icon: {fileID: 0}
+    group: win
+    tier: 2
+    icon: {fileID: 0}
+  - name: 'Master: win {0} games'
+    id: ach_top3_3
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: win
+    target: 200
+    reward:
+      type: 3
+      id: 
+      amount: 30
+      icon: {fileID: 0}
+    group: win
+    tier: 3
+    icon: {fileID: 0}
+  - name: 'Saver: earn {0} Cash'
+    id: ach_drift_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: earn_soft
+    target: 1000
+    reward:
+      type: 4
+      id: booster_nitro
+      amount: 2
+      icon: {fileID: 0}
+    group: earn
+    tier: 1
+    icon: {fileID: 0}
+  - name: 'Banker: earn {0} Cash'
+    id: ach_drift_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: earn_soft
+    target: 10000
+    reward:
+      type: 2
+      id: 
+      amount: 500
+      icon: {fileID: 0}
+    group: earn
+    tier: 2
+    icon: {fileID: 0}
+  - name: 'Tycoon: earn {0} Cash'
+    id: ach_drift_3
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: earn_soft
+    target: 50000
+    reward:
+      type: 3
+      id: 
+      amount: 30
+      icon: {fileID: 0}
+    group: earn
+    tier: 3
+    icon: {fileID: 0}
+  - name: 'Supporter: watch {0} ads'
+    id: ach_overtake_1
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: watch_ad
+    target: 5
+    reward:
+      type: 2
+      id: 
+      amount: 200
+      icon: {fileID: 0}
+    group: ads
+    tier: 1
+    icon: {fileID: 0}
+  - name: 'Fan: watch {0} ads'
+    id: ach_overtake_2
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: watch_ad
+    target: 25
+    reward:
+      type: 2
+      id: 
+      amount: 500
+      icon: {fileID: 0}
+    group: ads
+    tier: 2
+    icon: {fileID: 0}
+  - name: 'Patron: watch {0} ads'
+    id: ach_overtake_3
+    idThumb: 
+    index: 0
+    description: 
+    isPublish: 1
+    unlock: 0
+    unlockPrice: 1
+    isUnlocked: 0
+    currencyType: 2
+    price: 1
+    isOwnerBy: 2
+    isOwnerPay: 0
+    isOwner: 0
+    isSelected: 0
+    count: -1
+    eventKey: watch_ad
+    target: 100
+    reward:
+      type: 3
+      id: 
+      amount: 30
+      icon: {fileID: 0}
+    group: ads
+    tier: 3
+    icon: {fileID: 0}

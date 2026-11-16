@@ -68,11 +68,14 @@ namespace Base.Ads
                 message.text = isToUpperCase ? messages[0].ToUpper() : messages[0];
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void RegisterToast() => ZenToast.Backend = message => ShowNotice(message);
-
+        /// <summary>A short notice on screen (into the log when no ADsManager is loaded yet).</summary>
         public static void ShowNotice(string message, float durationAutoHide = 1.5f)
         {
+            if (instance == null)
+            {
+                Debug.Log("[AdToast] " + message);
+                return;
+            }
             instance.DOShow(message, durationAutoHide, false);
         }
 

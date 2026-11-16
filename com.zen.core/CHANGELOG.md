@@ -1,5 +1,149 @@
 # Changelog (com.zen.core)
 
+## [Unreleased]
+
+## [1.5.0] - 2026-11-16
+- Rewarded ads: one result per ShowReward (RewardResult). A network that sends Close before the reward (AdMob reports
+  the reward one frame later) gets up to 1 s for the reward; the callback runs once with ShowSuccess, Close or the
+  failure, never twice. Nothing at all for 120 s = ShowNotAvailable.
+- FTUE: when the ads SDK is not initialized by the Splash timeout, the AdmobInterOpen is loaded once it is
+  (AdsManager.LoadAds); ShowInter shows a ready InterOpen before any other interstitial.
+- Splash: a toast says when the build uses test ads ("Test IDs is ON in AdConfig" or "<n> ad placements have no ID in
+  AdIds"); AdmobBase.IsOnFallbackTestId. New projects can build with test IDs.
+- GameSettings.OnQualityChanged (applied level) and AutoQualityLevel; QualityListener turns objects on from a quality
+  level up and others below it. Sample UI: quality labels in the settings popup.
+- AdBannerSpace keeps the bottom of UIManager > Contents clear of the banner; the banner sets its height before it
+  loads (AdZative, AdmobBanner) and 0 with Remove Ads / VIP.
+- Splash state flow: one scene goes to Main; Main + a game scene goes straight into the game, whose GameManager calls
+  Ready. ScreenUtils gives a Canvas without a camera the scene's UI_Camera (else Camera.main).
+- Build Check only reports (warnings), never fails a build.
+- Tests/Editor: RewardResult (reward before / after close, skip, failures, timeout).
+- AGENTS.md: a Managers table (what each manager does, where it lives) and a Pitfalls list (Splash contents, revive at
+  WaitLose, Remove Ads / Restore components, popup rules, GameSettings only, asset names); the Splash holds the
+  EventSystem, a game scene has none.
+- HapticFeedback -> HapticManager, a static class (PlayImpact, IsOn; same PlayerPrefs key): its own toggle and the
+  HapticFeedback prefab are gone (the setting is GameSettings.VibrationOn).
+- SFXSampleManager / SFXPoolReturn follow GameSettings.SoundOn / SoundVolume like SoundManager; a source goes back to
+  the pool when nothing plays, Set(Vector3) plays once (it played twice), the release time accounts for the pitch.
+- Sample UI: MonManager removed; GameFlow.Lose opens UIPopupRevive while revives are left, else ends the game.
+- No more hooks between parts (left from when Base was split into packages; it is one assembly): ZenStore,
+  ZenStoreIAP, ZenToast, FirebaseZenBackend, IZenAnalytics / IZenRemote and their Backend properties are gone.
+  Remove Ads: a RemoveAdsButton on any button (it adds the IAPButtonExtent; hidden without Unity IAP and once ads are
+  removed). Restore: RestorePurchasesButton (iOS) -> IAPManager.RestorePurchases. Shop: CurrencyManager.OpenShop.
+  A purchase holds interstitials through AdsManager.DelayAdsForPurchase. Notices: AdToast.ShowNotice (log while no
+  ADsManager is loaded).
+- No "Zen" prefix in the API: ZenAnalytics -> AnalyticsManager, ZenRemote -> RemoteConfigManager (both call
+  FirebaseManager), ZenNotifications -> NotificationManager, ZenAdIds -> AdIds, ZenIapSettings -> IAPSettings,
+  ZenUpdateChecker -> UpdateChecker; editor ZenHub -> BaseHub, ZenBuildCheck -> BuildCheck, ZenSetupIssue ->
+  SetupIssue, ZenSetupUtil -> SetupUtil, IZenSetupModule -> ISetupModule, IZenHubTab -> IHubTab (same script GUIDs).
+  Game assets: Resources/ZenAdIds.asset -> AdIds.asset, Resources/ZenIapSettings.asset -> IAPSettings.asset,
+  Assets/ZenProfiles -> Assets/Profiles: Base > Hub > Setup (Core) renames them, Build Check blocks a release build
+  until then.
+- UIPopup: a tap on the dim background (PopupBackground, outside the panes of ContentAnim) does what the back key does
+  (closeOnTapOutside, on by default).
+- AdSplash loads a second game scene only when its index is in the Build Settings: AdSplash.prefab had index 3, which
+  threw in GetSceneByBuildIndex and left the splash loading screen over the game (landscape ADsManager); now 0.
+  Templates~/00_SplashScreen.unity (landscape) gets the GameStateManager the portrait one has.
+- Sample UI: GameFlowTestPanel (replaces GameFlowDebugButtons) is the flow test panel, styled like Test All Ads and
+  always shown in the scene (no Debug Mode): Play, Mode, Pause, Win, Lose, Next, Restart, Home, a state log. The
+  Settings popup's UIAnim was disabled (it never showed on its first open).
+- Sample UI replaces samples Racing and Scenes: Samples~/UI (scene 99_SampleScene) runs every GameState with flow
+  buttons (no gameplay; Casual / Racing results), home, in-game screen, result, revive
+  (countdown), pause, settings, shop (the shop UI moved here from the package: UIPopupIAP sets ZenStore.OpenShop),
+  daily login, missions, achievements; game-end interstitial after a skipped revive and a closed result. Samples~/Data
+  kept. Neither ships a Splash, a catalog or Build Settings changes.
+- Splash in the package: Templates~/00_SplashScreen(_Portrait).unity (empty itemDatas); Base > Hub > Setup creates it at
+  Build Settings index 0 and adds the game's ItemDatas to its DataManager. Base > Play From Splash (editor, on by
+  default): Play always starts at the Splash and AdSplash comes back to the scene that was open.
+- Audio: SoundManager / MusicManager (Runtime/Audio, prefab AudioManager in the Splash) follow GameSettings, which adds
+  SoundVolume / MusicVolume / Quality (saved). HapticFeedback.PlayImpact is silent while vibration is off.
+- UIManager shows a screen loaded from Resources with OpenAtStart (its UIAnim hid it in Start). ZenStoreIAP no longer
+  sets ZenStore.OpenShop (the game's shop does); UIManagerDebug opens the shop through it. AdSplash loses an
+  unguarded `using UnityEditor` that broke player builds.
+- Sample Racing replaces sample Features: Samples~/Racing (scene 96_RacingSample) is self-contained (home, garage,
+  daily login, missions, achievements, settings popups, VehicleDatas, NotificationDatas) with a README; scene
+  97_FeaturesSample, SampleDebugPanel and the editor builders are gone (the prefabs are the source now).
+- Sample Racing (Assets/SampleRacing, scene 96_RacingSample): a whole game in one scene. Core
+  gameplay (GameManager → PlayerManager / BotManager / TrackManager → controllers, pools, RaceConfig) only tells
+  GameStateManager; the HUD, the popups (revive, result, offer, garage) and MonManager (revive at WaitLose,
+  interstitial after a result, IAP pack offers by player segment) listen. Racing datas (GAME_DESIGN_SAMPLE_DATAS.md 4),
+  IAP packs (IAPPackDatas), racing events reported mid-race. The splash scenes' DataManager uses the racing datas.
+- Documentation~/Gameplay.md: the game structure for new games; GameState.md: revive at WaitLose, not after Lose.
+- Missions.OnCompleted(MissionData, isAchievement): a daily mission or an achievement just reached its target, even
+  in the middle of a game (toast, sound); the reward is still claimed from its popup.
+- IAPPackDatas / IAPPackData (Runtime/IAP): the game's IAP packs as data (productId, List<Reward> rewards, badge,
+  icon, isOffer), registered in DataManager.itemDatas. IAPManager.GetPack(id); IAPButtonExtent.packId takes the product
+  and rewards from the pack (empty = its own list, as before). IAPManager.TryGrant grants Booster / Item rewards with an
+  id through Rewards.Grant; OnGrantReward only gets what Base cannot grant. A product with no reward is not confirmed.
+- GameCounters (Runtime/DataManager): Base counts games in UserData from GameStateManager (Play not after Pause /
+  Revive → totalPlay, Win → totalWin + winStreak, Lose → totalLose + loseStreak), so adInterOnPlay and InAppReview work
+  without game code. GameCounters.IsEnabled = false for a game that counts by itself. Sample Features no longer counts.
+- AdZative: Remove Ads / VIP no longer deactivate the native rewarded (AdZative_Reward_Default): a Remove Ads player
+  lost the rewarded fallback with adRewardFlow Both and every rewarded ad with OnlyNative.
+- Documentation~/Ads.md: ads, Remove Ads, VIP and IAP rewards for agents and games (every AdConfig key, the
+  interstitial / app open decision, what UserData counts and what the game must count, diagrams, checklist).
+- ZenNotifications (Runtime/Notifications, needs com.unity.mobile.notifications: define USE_NOTIFICATIONS): local
+  reminders for Daily Login and Daily Missions (GAME_DESIGN_SAMPLE_DATAS.md section 14). Offer after claiming login
+  day 1, 3 or 7 (at most 3), OS dialog only after the player accepts; NotificationPlanner schedules on leaving the game
+  (today 20:00 when rewards wait, day +1, +3, +7 at the usual hour, quiet 21:30–08:00, nothing after day +7);
+  NotificationDatas holds the texts; a tapped reminder opens its popup (TakeRoute); save section "notifications",
+  Remote Config push_enabled; logs push_prompt, push_permission, push_scheduled, push_open, push_converted.
+- Rewards.Describe(reward): "150 coins", "50 gems", the booster or item name.
+- FirebaseManager (USE_FIREBASE_MESSAGE) no longer asks the notification permission at start (iOS asks only once):
+  ZenNotifications asks after the player's consent.
+- Sample Features: "Remind me / Not now" in UIPopupDailyLogin, Reminders toggle in UIPopupSettings, the home
+  screen opens the popup of a tapped reminder (held during a run), Push 10s and Reset Push debug buttons,
+  Datas/NotificationDatas.
+- Documentation~/GameState.md: GameStateManager states, event rules, listeners in Base, UI by state, pitfalls.
+- Tests/Editor: NotificationPlanner (days, one a day, rewards waiting, quiet hours, usual hour, offer rule).
+- GameSettings (Runtime/GameSettings): sound and music (saved in the save file, section "settings") and vibration
+  (HapticFeedback.IsOn), with OnSoundChanged / OnMusicChanged / OnVibrationChanged for the game's audio manager; a
+  change logs settings_change {setting, on}.
+- ZenStore.RestorePurchases: restores the player's purchases (Remove Ads) from the store; the IAP part sets it,
+  IAPButtonExtent.Restore calls it.
+- Sample "Features" (Samples~/Features, scene 97_FeaturesSample): home screen UIScreenHome (Play, Settings, Shop,
+  "Quit?" on back), settings popup UIPopupSettings (sound / music / vibration, privacy, rate, restore, remove ads,
+  version), Toggle_Base and a Rotate debug button. One prefab per view for portrait and landscape: a popup stays within
+  1000 x 1000, screens use anchors + SafeArea (OrientationLayout on the title). The UI is meant to be copied into the
+  game and restyled.
+- DailyLogin (Runtime/DailyLogin): one reward per calendar day along the daily login calendar (days, resetOnMiss,
+  adDouble, showOnHome), starting again after the last day; saved in section "daily_login"; Claim (CurrencyManager,
+  fly FX) and ClaimDouble (rewarded ad "daily_login_x2"); OnClaimed; Remote Config dailyLogin_enabled; logs
+  daily_login_claim {day, cycle, currency, amount, doubled}. CurrencyManager.HasInstance.
+- Sample Features: UIPopupDailyLogin (calendar of UIDailyLoginCell, Claim, x2 with Ad), Daily Login button with a
+  "reward waiting" dot on the home screen, which opens the calendar by itself; Resources/DailyLoginConfig (7 days);
+  Base > Samples > Daily Login: Make Today Claimable (Play mode). Sample menus moved from Tools/Zen Samples to Base/Samples.
+- UIScreen: the scene's start screen (UIAnim playAnimAtStart) now runs its OnShow / OnShown hooks too (they only ran
+  for screens opened by UIManager.ShowScreen).
+- DailyMissions (Runtime/DailyMission): each day missionsPerDay missions from Resources/DailyMissionConfig (in order
+  or pickRandom, the same list on every device for the same day), progress in section "daily_mission", reset on the
+  first read of a new day; Report(eventKey, amount), Claim(id, from), Today, HasClaimable, NextReset, OnChanged,
+  ResetToday (debug). Base reports play / win / lose (GameStateManager), watch_ad (rewarded ad shown) and earn_soft
+  (soft currency gained); Remote Config dailyMission_enabled; logs daily_mission_claim {id, event, target, currency,
+  amount}.
+- Sample Features: UIPopupDailyMission (UIDailyMissionRow / DailyMission_Row: title, progress bar, x/y, reward, Claim
+  / DONE, "Reset in hh:mm:ss"), Missions button with a "reward ready" dot on the home screen,
+  Resources/DailyMissionConfig (5 missions, 3 a day), Base > Samples > Daily Mission: New Day (Play mode).
+- Datas instead of Resources configs: DailyLoginDatas, DailyMissionDatas and AchievementDatas are ItemDatas assets in
+  DataManager.itemDatas (DailyLoginConfig and DailyMissionConfig are removed). Reward {type, id, amount} for every
+  reward and Rewards.Grant: Soft / Hard, Booster (adds to the item count), Item (owns the item, CurrencyType.Item = 6).
+  x2 for an ad only for coins and boosters (DailyLogin.CanClaimDouble). daily_login_claim and daily_mission_claim log
+  type (and id) instead of currency.
+- Missions.Report(eventKey, amount) replaces DailyMissions.Report and also feeds Achievements; Missions.Event* replace
+  DailyMissions.Event*; Base also reports unlock_item for an Item reward.
+- Achievements (Runtime/Achievement): lifetime counter per event key, groups and tiers (lowest unclaimed tier shown),
+  Visible, Progress, CanClaim, Claim; save section "achievement"; Remote Config achievement_enabled; logs
+  achievement_claim.
+- DailyLogin and DailyMissions: moving the device clock back no longer opens a new day.
+- Base.dll: IItemDatas.Find / ItemDatas.Find (exact id, null when missing; GetById falls back to current).
+- Sample Features: endless-runner data from GAME_DESIGN_SAMPLE_DATAS.md (7-day login with coins, gems and boosters,
+  15 daily missions, 5 achievement groups × 3 tiers, boosters, characters) registered on the DataManager of the sample
+  and of the splash scenes; UIPopupAchievements and an Achievements button; Play runs a fake run; SampleDebugPanel
+  (Boost, Buy Hero).
+- Tests/Editor: Rewards, Achievements, x2 rule, clock moved back; GameSettings (defaults, events, save round trip), DailyLogin (first claim, once a day, next day,
+  calendar restart, missed day with and without reset), DailyMissions (day list in order and random, rotation on a
+  new day, report up to the target, claim once, save round trip, reset).
+
 ## [1.4.0] - 2026-10-30
 - UMP consent screen title: "Welcome to <product name>" (was "Welcom").
 - AdToast auto-hide runs on real time: after a rewarded AdMob ad the "Thanks for watching" toast stayed up to

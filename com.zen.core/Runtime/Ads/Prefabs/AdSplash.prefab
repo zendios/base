@@ -53,7 +53,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadSceneMainIndex: 1
   loadSceneMainMode: 0
-  loadSceneGameIndex: 3
+  loadSceneGameIndex: 0
   loadSceneGameMode: 1
 --- !u!1001 &3837508384329648903
 PrefabInstance:

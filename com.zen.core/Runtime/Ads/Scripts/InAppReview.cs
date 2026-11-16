@@ -82,12 +82,12 @@ public class InAppReview : MonoBehaviour
     {
         if (rating == 5)
         {
-            ZenAnalytics.LogEvent("rate_submit", new Dictionary<string, object> { { "rating", rating }, { "total_win", DataManager.UserData.totalWin } });
+            AnalyticsManager.LogEvent("rate_submit", new Dictionary<string, object> { { "rating", rating }, { "total_win", DataManager.UserData.totalWin } });
             ShowInAppReview();
         }
         else
         {
-            ZenAnalytics.LogEvent("rate_feedback", new Dictionary<string, object> { { "rating", rating }, { "total_win", DataManager.UserData.totalWin } });
+            AnalyticsManager.LogEvent("rate_feedback", new Dictionary<string, object> { { "rating", rating }, { "total_win", DataManager.UserData.totalWin } });
             if (inputField.text == string.Empty)
             {
                 buttonSubmit.interactable = false;
@@ -110,7 +110,7 @@ public class InAppReview : MonoBehaviour
 
     private void OnNotNowClicked()
     {
-        ZenAnalytics.LogEvent("rate_later", new Dictionary<string, object> { { "rating", rating }, { "total_win", DataManager.UserData.totalWin } });
+        AnalyticsManager.LogEvent("rate_later", new Dictionary<string, object> { { "rating", rating }, { "total_win", DataManager.UserData.totalWin } });
         content.SetActive(false);
     }
 

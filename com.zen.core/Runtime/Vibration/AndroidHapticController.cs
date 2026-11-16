@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Internal class, only accessible within the assembly.
-// The public API is HapticFeedback.
+// The public API is HapticManager.
 internal static class AndroidHapticController
 {
     // --- Pre-cached Waveform Arrays for Zero GC Allocation ---
@@ -46,7 +46,7 @@ internal static class AndroidHapticController
         }
     }
 
-    public static void PlayImpact(HapticFeedback.ImpactStyle style)
+    public static void PlayImpact(HapticManager.ImpactStyle style)
     {
         if (!_hasVibrator) return;
 
@@ -69,34 +69,34 @@ internal static class AndroidHapticController
         }
     }
 
-    private static AndroidJavaObject CreateModernEffect(HapticFeedback.ImpactStyle style)
+    private static AndroidJavaObject CreateModernEffect(HapticManager.ImpactStyle style)
     {
         switch (style)
         {
-            case HapticFeedback.ImpactStyle.Light:
+            case HapticManager.ImpactStyle.Light:
                 return _vibrationEffectClass.CallStatic<AndroidJavaObject>("createPredefined", _vibrationEffectClass.GetStatic<int>("EFFECT_TICK"));
-            case HapticFeedback.ImpactStyle.Medium:
+            case HapticManager.ImpactStyle.Medium:
                 return _vibrationEffectClass.CallStatic<AndroidJavaObject>("createPredefined", _vibrationEffectClass.GetStatic<int>("EFFECT_CLICK"));
-            case HapticFeedback.ImpactStyle.Heavy:
+            case HapticManager.ImpactStyle.Heavy:
                 return _vibrationEffectClass.CallStatic<AndroidJavaObject>("createPredefined", _vibrationEffectClass.GetStatic<int>("EFFECT_HEAVY_CLICK"));
-            case HapticFeedback.ImpactStyle.Rigid:
+            case HapticManager.ImpactStyle.Rigid:
                 return _vibrationEffectClass.CallStatic<AndroidJavaObject>("createWaveform", RIGID_TIMINGS, RIGID_AMPLITUDES, -1);
-            case HapticFeedback.ImpactStyle.Soft:
+            case HapticManager.ImpactStyle.Soft:
                 return _vibrationEffectClass.CallStatic<AndroidJavaObject>("createWaveform", SOFT_TIMINGS, SOFT_AMPLITUDES, -1);
             default:
                 return null;
         }
     }
 
-    private static long GetLegacyDuration(HapticFeedback.ImpactStyle style)
+    private static long GetLegacyDuration(HapticManager.ImpactStyle style)
     {
         switch (style)
         {
-            case HapticFeedback.ImpactStyle.Light: return 10;
-            case HapticFeedback.ImpactStyle.Medium: return 20;
-            case HapticFeedback.ImpactStyle.Heavy: return 30;
-            case HapticFeedback.ImpactStyle.Rigid: return 35;
-            case HapticFeedback.ImpactStyle.Soft: return 25;
+            case HapticManager.ImpactStyle.Light: return 10;
+            case HapticManager.ImpactStyle.Medium: return 20;
+            case HapticManager.ImpactStyle.Heavy: return 30;
+            case HapticManager.ImpactStyle.Rigid: return 35;
+            case HapticManager.ImpactStyle.Soft: return 25;
             default: return 0;
         }
     }

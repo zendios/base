@@ -14,11 +14,11 @@ namespace Base.Setup
     /// Ad Config: every field by group, fields that differ from the package defaults highlighted (with a reset),
     /// presets (package defaults, test, the game's own saved presets) and the Firebase Remote Config template export.
     /// </summary>
-    internal class HubAdConfig : IZenHubTab
+    internal class HubAdConfig : IHubTab
     {
         public string Title => "Ad Config";
 
-        private const string PresetsFolder = "Assets/ZenProfiles/AdConfig";
+        private const string PresetsFolder = "Assets/Profiles/AdConfig";
 
         private AdConfig config, defaults;
         private SerializedObject so, def;
@@ -46,14 +46,14 @@ namespace Base.Setup
                 EditorGUILayout.HelpBox("No AdConfig in Assets/Resources: the game runs with the package defaults.", MessageType.Warning);
                 if (GUILayout.Button("Create Assets/Resources/AdConfig", GUILayout.Width(260)))
                 {
-                    ZenSetupUtil.CreateResource<AdConfig>(AdConfig.ResourcePath);
+                    SetupUtil.CreateResource<AdConfig>(AdConfig.ResourcePath);
                     OnEnable();
                 }
                 return;
             }
 
             DrawPresets();
-            EditorGUILayout.LabelField("Highlighted = differs from the package default. Remote Config (same key names) overrides these values at runtime.", ZenHub.NoteWrapped);
+            EditorGUILayout.LabelField("Highlighted = differs from the package default. Remote Config (same key names) overrides these values at runtime.", BaseHub.NoteWrapped);
 
             so.Update();
             scroll = EditorGUILayout.BeginScrollView(scroll);
@@ -68,7 +68,7 @@ namespace Base.Setup
                 bool changed = d != null && !SerializedProperty.DataEquals(it, d);
                 EditorGUILayout.BeginHorizontal();
                 var old = GUI.backgroundColor;
-                if (changed) GUI.backgroundColor = ZenHub.Changed;
+                if (changed) GUI.backgroundColor = BaseHub.Changed;
                 EditorGUILayout.PropertyField(it, true);
                 GUI.backgroundColor = old;
                 using (new EditorGUI.DisabledScope(!changed))
@@ -77,7 +77,7 @@ namespace Base.Setup
                 EditorGUILayout.EndHorizontal();
             }
             so.ApplyModifiedProperties();
-            ZenHub.Header("Remove Ads (IAP)");
+            BaseHub.Header("Remove Ads (IAP)");
             iap.OnGUI();
             EditorGUILayout.EndScrollView();
 
@@ -97,7 +97,7 @@ namespace Base.Setup
         private void DrawPresets()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Presets", ZenHub.Note, GUILayout.Width(50));
+            GUILayout.Label("Presets", BaseHub.Note, GUILayout.Width(50));
             if (GUILayout.Button(new GUIContent("Package defaults", "Every field back to the package default (ad IDs are not here)"), EditorStyles.toolbarButton))
                 Apply(() => EditorUtility.CopySerializedManagedFieldsOnly(defaults, config), "Package defaults");
             if (GUILayout.Button(new GUIContent("Test (no waits)", "Test IDs on, no time / play limits before an interstitial"), EditorStyles.toolbarButton))
@@ -152,7 +152,7 @@ namespace Base.Setup
         }
 
         /// <summary>
-        /// Firebase Remote Config template ({"parameters": ...}) with every Zen key: GameConfig, AdConfig (this
+        /// Firebase Remote Config template ({"parameters": ...}) with every key of Base: GameConfig, AdConfig (this
         /// game's values) and one JSON per native full-screen placement (pod size + timing of its AdZative prefab; key =
         /// the prefab's placement name).
         /// </summary>

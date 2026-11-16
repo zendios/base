@@ -149,8 +149,7 @@ namespace Base.Ads
         {
             if (isVip)
             {
-                foreach (RectTransform rectTransform in rootRectTransform)
-                    rectTransform.offsetMin = Vector2.zero;
+                AdBannerSpace.Set(0);
                 StopAllCoroutines();
                 DestroyAd();
             }
@@ -241,6 +240,10 @@ namespace Base.Ads
                 }
 
                 AdSize adaptiveSize = AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(adWidth);
+                // Clear the banner's height before it loads (dp -> px -> canvas units); OnAdLoaded corrects it, a
+                // failed load keeps it so the UI does not jump between reloads.
+                if (mainCanvas != null && mainCanvas.scaleFactor > 0f)
+                    AdBannerSpace.Set(adaptiveSize.Height * MobileAds.Utils.GetDeviceScale() / mainCanvas.scaleFactor);
                 if (nativeX > 0)
                     ad = new BannerView(id, adaptiveSize, nativeX, nativeY);
                 else
@@ -387,8 +390,7 @@ namespace Base.Ads
                         adHeight = ad.GetHeightInPixels() / scaleFactor;
                         adPlaceholder.sizeDelta = new Vector2(0, adHeight);
 
-                        foreach (RectTransform rectTransform in rootRectTransform)
-                            rectTransform.offsetMin = new Vector2(0, adHeight);
+                        AdBannerSpace.Set(adHeight);
                     }
 
                     adPlaceholder.ForceUpdateRectTransforms();
@@ -489,9 +491,6 @@ namespace Base.Ads
         private Vector3[] worldCorners = new Vector3[4];
         [SerializeField] protected Canvas mainCanvas;
         [SerializeField] protected RectTransform adPlaceholder;
-        [SerializeField]
-        [Tooltip("This is the list RectTransform, we need to set for offsetBottom when Banner Loaded")]
-        protected List<RectTransform> rootRectTransform;
         private int nativeX;
         private int nativeY;
     }

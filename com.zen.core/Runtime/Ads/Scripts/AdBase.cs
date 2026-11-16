@@ -22,7 +22,7 @@ namespace Base.Ads
         public AdType type = AdType.Inter;
         public PlacementType placement = PlacementType.None;
         [SerializeField] protected string placementName = "default";
-        [HideInInspector] public AdIdData adIdData;   // optional per-prefab override of the ZenAdIds row (hidden: IDs live in ZenAdIds)
+        [HideInInspector] public AdIdData adIdData;   // optional per-prefab override of the AdIds row (hidden: IDs live in AdIds)
         protected string item = "default";
         protected string TAG = "ADMOB -> "; [Tooltip("A unique name for this ad placement. This MUST be unique for each ZativeAd object in the scene.")]
 
@@ -244,13 +244,13 @@ namespace Base.Ads
 
         /// <summary>
         /// Ad unit IDs of this placement, in waterfall order: the AdIdData set on the prefab (optional override), else the
-        /// game's ZenAdIds row of this PlacementType. Empty when the game has none (AdmobBase then uses a test ID).
+        /// game's AdIds row of this PlacementType. Empty when the game has none (AdmobBase then uses a test ID).
         /// </summary>
         protected List<string> ResolveIds()
         {
             if (adIdData != null)
                 return adIdData.list.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
-            var ids = ZenAdIds.Instance;
+            var ids = AdIds.Instance;
             return ids != null ? ids.Get(placement) : new List<string>();
         }
 
@@ -593,7 +593,7 @@ namespace Base.Ads
 
         public void LogState()
         {
-            if (!ZenAnalytics.IsReady)
+            if (!AnalyticsManager.IsReady)
                 return;
             var parameter = AdParameter();
             if (loadTime > 0)
@@ -603,7 +603,7 @@ namespace Base.Ads
             if (durationTime > 0)
                 parameter["ad_duration_time"] = durationTime.ToString("#0", culture);
 
-            ZenAnalytics.LogEventExact(("ad_" + type.RegexToId() + "_" + state.RegexToId()).RegexToId(32), parameter);
+            AnalyticsManager.LogEventExact(("ad_" + type.RegexToId() + "_" + state.RegexToId()).RegexToId(32), parameter);
 
             if (DebugMode.IsOn)
                 Log(string.Format("AdParameter ad_status: {0} -- ad_item: {1} -- ad_id: {2} -- ad_source: {3} -- internet: {4} -- loadTime: {5} -- durationTime: {6}",
@@ -616,17 +616,17 @@ namespace Base.Ads
         };
         public void LogMilestone()
         {
-            if (!ZenAnalytics.IsReady)
+            if (!AnalyticsManager.IsReady)
                 return;
             if (type == AdType.Inter && adMilestones.Contains(userData.adInterstitial))
-                ZenAnalytics.LogEventExact($"ad_{type}_{userData.adInterstitial}_times".RegexToId(32), AdParameter());
+                AnalyticsManager.LogEventExact($"ad_{type}_{userData.adInterstitial}_times".RegexToId(32), AdParameter());
 
             if ((type == AdType.Reward || type == AdType.RewardInter) && adMilestones.Contains(userData.adRewarded))
-                ZenAnalytics.LogEventExact($"ad_{type}_{userData.adRewarded}_times".RegexToId(32), AdParameter());
+                AnalyticsManager.LogEventExact($"ad_{type}_{userData.adRewarded}_times".RegexToId(32), AdParameter());
 
             bool isTrackingType = type == AdType.Inter || type == AdType.Reward || type == AdType.RewardInter;
             if (isTrackingType && adMilestones.Contains(userData.adTotal))
-                ZenAnalytics.LogEventExact($"ad_success_{userData.adTotal}_times".RegexToId(32), AdParameter());
+                AnalyticsManager.LogEventExact($"ad_success_{userData.adTotal}_times".RegexToId(32), AdParameter());
         }
 
         protected long valueMicros = 0;
@@ -702,7 +702,7 @@ namespace Base.Ads
 
                 // Firebase revenue at once too: on the main-thread queue it waited while the app was in the background
                 // and was lost when the app was closed meanwhile (Firebase below AppsFlyer). LogEventExact uses no Unity API.
-                ZenAnalytics.LogEventExact("ad_impression_revenue", new Dictionary<string, object>
+                AnalyticsManager.LogEventExact("ad_impression_revenue", new Dictionary<string, object>
                 {
                     { "value", rev },
                     { "currency", cur },

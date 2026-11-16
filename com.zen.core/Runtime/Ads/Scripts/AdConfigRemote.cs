@@ -15,10 +15,10 @@ namespace Base.Ads
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Register()
         {
-            ZenRemote.OnCollectDefaults -= AddDefaults;
-            ZenRemote.OnCollectDefaults += AddDefaults;
-            ZenRemote.OnFetched -= Apply;
-            ZenRemote.OnFetched += Apply;
+            RemoteConfigManager.OnCollectDefaults -= AddDefaults;
+            RemoteConfigManager.OnCollectDefaults += AddDefaults;
+            RemoteConfigManager.OnFetched -= Apply;
+            RemoteConfigManager.OnFetched += Apply;
         }
 
         /// <summary>Adds this module's Remote Config keys with their current values (also used by Base > Hub export).</summary>
@@ -50,35 +50,35 @@ namespace Base.Ads
         private static void Apply()
         {
             var c = Config;
-            c.adTimePlayToShow = ZenRemote.GetFloat("adTimePlayToShow", c.adTimePlayToShow);
-            c.adTimePlayReduceToShow = ZenRemote.GetFloat("adTimePlayReduceToShow", c.adTimePlayReduceToShow);
-            c.adLoadTimeout = ZenRemote.GetFloat("adLoadTimeout", c.adLoadTimeout);
-            c.adTimeBetween = ZenRemote.GetFloat("adTimeBetween", c.adTimeBetween);
-            c.adAppOpenFlow = (AdFlow)ZenRemote.GetInt("adAppOpenFlow", (int)c.adAppOpenFlow);
-            c.adBannerFlow = (AdFlow)ZenRemote.GetInt("adBannerFlow", (int)c.adBannerFlow);
-            c.adInterFlow = (AdFlow)ZenRemote.GetInt("adInterFlow", (int)c.adInterFlow);
-            c.adInterOnFTUE = ZenRemote.GetInt("adInterOnFTUE", c.adInterOnFTUE);
-            c.adInterOnPlay = ZenRemote.GetInt("adInterOnPlay", c.adInterOnPlay);
-            c.adInterOnStart = ZenRemote.GetBool("adInterOnStart", c.adInterOnStart);
-            c.adInterOnComplete = ZenRemote.GetBool("adInterOnComplete", c.adInterOnComplete);
-            c.adInterVsRewardRatio = ZenRemote.GetInt("adInterVsRewardRatio", c.adInterVsRewardRatio);
-            c.adMrecOnFTUE = ZenRemote.GetInt("adMrecOnFTUE", c.adMrecOnFTUE);
-            c.adBannerReload = ZenRemote.GetInt("adBannerReload", c.adBannerReload);
-            c.adBannerOffset = ZenRemote.GetInt("adBannerOffset", c.adBannerOffset);
-            c.adCtrMax = ZenRemote.GetFloat("adCtrMax", c.adCtrMax);
-            c.adCtrMin = ZenRemote.GetFloat("adCtrMin", c.adCtrMin);
+            c.adTimePlayToShow = RemoteConfigManager.GetFloat("adTimePlayToShow", c.adTimePlayToShow);
+            c.adTimePlayReduceToShow = RemoteConfigManager.GetFloat("adTimePlayReduceToShow", c.adTimePlayReduceToShow);
+            c.adLoadTimeout = RemoteConfigManager.GetFloat("adLoadTimeout", c.adLoadTimeout);
+            c.adTimeBetween = RemoteConfigManager.GetFloat("adTimeBetween", c.adTimeBetween);
+            c.adAppOpenFlow = (AdFlow)RemoteConfigManager.GetInt("adAppOpenFlow", (int)c.adAppOpenFlow);
+            c.adBannerFlow = (AdFlow)RemoteConfigManager.GetInt("adBannerFlow", (int)c.adBannerFlow);
+            c.adInterFlow = (AdFlow)RemoteConfigManager.GetInt("adInterFlow", (int)c.adInterFlow);
+            c.adInterOnFTUE = RemoteConfigManager.GetInt("adInterOnFTUE", c.adInterOnFTUE);
+            c.adInterOnPlay = RemoteConfigManager.GetInt("adInterOnPlay", c.adInterOnPlay);
+            c.adInterOnStart = RemoteConfigManager.GetBool("adInterOnStart", c.adInterOnStart);
+            c.adInterOnComplete = RemoteConfigManager.GetBool("adInterOnComplete", c.adInterOnComplete);
+            c.adInterVsRewardRatio = RemoteConfigManager.GetInt("adInterVsRewardRatio", c.adInterVsRewardRatio);
+            c.adMrecOnFTUE = RemoteConfigManager.GetInt("adMrecOnFTUE", c.adMrecOnFTUE);
+            c.adBannerReload = RemoteConfigManager.GetInt("adBannerReload", c.adBannerReload);
+            c.adBannerOffset = RemoteConfigManager.GetInt("adBannerOffset", c.adBannerOffset);
+            c.adCtrMax = RemoteConfigManager.GetFloat("adCtrMax", c.adCtrMax);
+            c.adCtrMin = RemoteConfigManager.GetFloat("adCtrMin", c.adCtrMin);
             AdCtr.Max = c.adCtrMax;
             AdCtr.Min = c.adCtrMin;
-            c.forceMediaScaleMeta = ZenRemote.GetBool("forceMediaScaleMeta", c.forceMediaScaleMeta);
-            c.adRewardFlow = (AdFlow)ZenRemote.GetInt("adRewardFlow", (int)c.adRewardFlow);
+            c.forceMediaScaleMeta = RemoteConfigManager.GetBool("forceMediaScaleMeta", c.forceMediaScaleMeta);
+            c.adRewardFlow = (AdFlow)RemoteConfigManager.GetInt("adRewardFlow", (int)c.adRewardFlow);
 
-            string taichiJson = ZenRemote.GetString("taichi_config_json", "");
+            string taichiJson = RemoteConfigManager.GetString("taichi_config_json", "");
             if (TaichiManager.Instance != null && !string.IsNullOrEmpty(taichiJson))
                 TaichiManager.Instance.ApplyRemoteConfig(taichiJson);
 
             foreach (AdBase ad in AdsManager.List)
                 if (ad is AdZative zative)
-                    zative.ApplyRemoteConfig(ZenRemote.GetString(zative.name, ""));
+                    zative.ApplyRemoteConfig(RemoteConfigManager.GetString(zative.name, ""));
         }
     }
 }

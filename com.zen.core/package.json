@@ -1,6 +1,6 @@
 {
     "name": "com.zen.core",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "displayName": "Base",
     "license": "MIT",
     "unity": "6000.6",
@@ -14,20 +14,20 @@
     "dependencies": {
         "com.unity.ugui": "2.6.0",
         "com.unity.inputsystem": "1.20.1",
-        "com.zen.plugins.adzative": "1.4.0",
+        "com.zen.plugins.adzative": "1.5.0",
         "com.google.ads.mobile": "11.6.0"
     },
     "documentationUrl": "https://github.com/zendios/base/blob/main/com.zen.core/README.md",
     "changelogUrl": "https://github.com/zendios/base/blob/main/com.zen.core/CHANGELOG.md",
     "samples": [
         {
-            "displayName": "Scenes",
-            "description": "Splash (landscape / portrait) and the ads sample scene.",
-            "path": "Samples~/Scenes"
+            "displayName": "UI",
+            "description": "The UI and GameState flow of a casual game without gameplay, in scene 99_SampleScene: home, in-game screen, result, revive, pause, settings, shop (IAP packs), daily login, missions and achievements, the Game Flow test panel (Casual / Racing results). Needs the Splash from Base > Hub > Setup. Read its README.md.",
+            "path": "Samples~/UI"
         },
         {
             "displayName": "Data",
-            "description": "Game data on Base: item catalogues (characters, vehicles), the game's own save sections, a legacy save migration and a custom popup, in scene 98_DataSample.",
+            "description": "Game data on Base: item catalogues (characters, vehicles), the game's own save sections, a legacy save migration and a custom popup, in scene 98_DataSample. Needs the Splash from Base > Hub > Setup.",
             "path": "Samples~/Data"
         }
     ]

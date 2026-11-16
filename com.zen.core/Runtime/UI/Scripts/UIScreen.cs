@@ -9,6 +9,9 @@ public abstract class UIScreen : UIView
     {
         base.Awake();
         UIManager.Instance.RegisterScreen(this);
+        // the scene's start screen is shown by its UIAnim, not by Open(): run the OnShow / OnShown hooks all the same
+        if (anim != null && anim.playAnimAtStart)
+            OpenAtStart();
     }
 
     protected virtual void OnDestroy()

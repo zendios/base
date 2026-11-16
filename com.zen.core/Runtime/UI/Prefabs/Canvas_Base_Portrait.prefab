@@ -90,7 +90,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6584267581116455959, guid: eacef28ff68f3de448dd21a70a3b8c4b, type: 3}
       propertyPath: m_Name
-      value: CanvasBase_Portrait Variant
+      value: Canvas_Base_Portrait
       objectReference: {fileID: 0}
     - target: {fileID: 8809437696508904253, guid: eacef28ff68f3de448dd21a70a3b8c4b, type: 3}
       propertyPath: m_MatchWidthOrHeight

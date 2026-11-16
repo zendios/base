@@ -11,10 +11,10 @@ namespace Base
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Register()
         {
-            ZenRemote.OnCollectDefaults -= AddDefaults;
-            ZenRemote.OnCollectDefaults += AddDefaults;
-            ZenRemote.OnFetched -= Apply;
-            ZenRemote.OnFetched += Apply;
+            RemoteConfigManager.OnCollectDefaults -= AddDefaults;
+            RemoteConfigManager.OnCollectDefaults += AddDefaults;
+            RemoteConfigManager.OnFetched -= Apply;
+            RemoteConfigManager.OnFetched += Apply;
         }
 
         /// <summary>Adds this module's Remote Config keys with their current values (also used by Base > Hub export).</summary>
@@ -38,14 +38,14 @@ namespace Base
             var c = Config;
             if (c == null)
                 return;
-            c.bundleVersion = ZenRemote.GetInt("bundleVersion", c.bundleVersion);
-            c.forceVersion = ZenRemote.GetString("forceVersion", c.forceVersion);
-            c.inAppUpdate = ZenRemote.GetBool("inAppUpdate", c.inAppUpdate);
-            c.FTUE_Play = ZenRemote.GetBool("FTUE_Play", c.FTUE_Play);
-            c.FTUE_Level = ZenRemote.GetString("FTUE_Level", c.FTUE_Level);
-            c.FTUE_LevelVariant = ZenRemote.GetString("FTUE_LevelVariant", c.FTUE_LevelVariant);
-            c.FTUE_Character = ZenRemote.GetString("FTUE_Character", c.FTUE_Character);
-            c.FTUE_CharacterSelect = ZenRemote.GetBool("FTUE_CharacterSelect", c.FTUE_CharacterSelect);
+            c.bundleVersion = RemoteConfigManager.GetInt("bundleVersion", c.bundleVersion);
+            c.forceVersion = RemoteConfigManager.GetString("forceVersion", c.forceVersion);
+            c.inAppUpdate = RemoteConfigManager.GetBool("inAppUpdate", c.inAppUpdate);
+            c.FTUE_Play = RemoteConfigManager.GetBool("FTUE_Play", c.FTUE_Play);
+            c.FTUE_Level = RemoteConfigManager.GetString("FTUE_Level", c.FTUE_Level);
+            c.FTUE_LevelVariant = RemoteConfigManager.GetString("FTUE_LevelVariant", c.FTUE_LevelVariant);
+            c.FTUE_Character = RemoteConfigManager.GetString("FTUE_Character", c.FTUE_Character);
+            c.FTUE_CharacterSelect = RemoteConfigManager.GetBool("FTUE_CharacterSelect", c.FTUE_CharacterSelect);
         }
     }
 }

@@ -80,7 +80,7 @@ An old project with type folders (`Texture2D/`, `AudioClip/`, `Images/`...) move
 `Base.Tools.ZpasReorganize.Run` (section 6, step 5): the Parent of an asset is the scene (or `Resources`) that uses it.
 
 **Assets loaded by name** must keep their name and folder, or the code changes with them:
-`Resources/ZenAdIds`, `Resources/AdConfig`, `Resources/ZenIapSettings`, `Resources/DOTweenSettings`, and every popup
+`Resources/AdIds`, `Resources/AdConfig`, `Resources/IAPSettings`, `Resources/DOTweenSettings`, and every popup
 or screen loaded by `UIPopupBase<T>` / `UIManager.LoadScreen<T>()`: `Resources/<ClassName>.prefab`.
 
 ## 4. UI assets
@@ -164,4 +164,4 @@ grep -E "error CS" Logs/<task>.log
 | `UIManager.prefab`, `UIManagerDebug.prefab`, `UIPopupMessage.prefab`, `UIPopupIAP.prefab`, `AdsManager`, `DataManager`, `CurrencyManager`, `IAPManager` prefabs | class-driven, `PascalCase` |
 | `Button_Base`, `Button_CTA`, `Button_Icon`, `Button_Text`, `Canvas_Base`, `Canvas_Base_Portrait`, `Event_System`, `Icon_Base`, `Popup_Background`, `Popup_Base`, `Text_Base`, `UI_Camera`, `ADsManager_Portrait` | variant prefabs, `Pascal_Snake_Case` |
 | `ui_common_btn_spr_border.png`, `ui_common_btn_spr_bg_green.png`, `ui_common_icon_spr_blank.png`, `ui_iap_pack_spr_ios_01.png`, `ui_common_btn_anm_base.controller` | sub-assets, `lowercase_snake_case` |
-| `Resources/ZenAdIds.asset`, `Resources/AdConfig.asset`, `Resources/ZenIapSettings.asset` | loaded by name: fixed |
+| `Resources/AdIds.asset`, `Resources/AdConfig.asset`, `Resources/IAPSettings.asset` | loaded by name: fixed |

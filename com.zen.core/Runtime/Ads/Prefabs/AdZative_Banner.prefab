@@ -54,8 +54,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3964951976236836410, guid: 610bf98434929084a8aaae07288c3d7b, type: 3}
       propertyPath: m_text
-      value: Remove ADs - Enjoy an ad-free experience with any purchase. (Excludes
-        Rewarded Videos for bonuses)
+      value: Remove ADs - Enjoy an ad-free experience with any purchase. (Excludes Rewarded Videos for bonuses)
       objectReference: {fileID: 0}
     - target: {fileID: 3964951976236836410, guid: 610bf98434929084a8aaae07288c3d7b, type: 3}
       propertyPath: m_HorizontalAlignment
@@ -75,7 +74,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6428842368909709065, guid: 610bf98434929084a8aaae07288c3d7b, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 66
+      value: 72
       objectReference: {fileID: 0}
     - target: {fileID: 6428842368909709065, guid: 610bf98434929084a8aaae07288c3d7b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -154,7 +153,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4287959172886183073, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 96
+      value: 126
       objectReference: {fileID: 0}
     - target: {fileID: 4287959172886183073, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -190,7 +189,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4287959172886183073, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -24
       objectReference: {fileID: 0}
     - target: {fileID: 4287959172886183073, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -214,7 +213,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5497022020618746165, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: size
-      value: 96
+      value: 72
       objectReference: {fileID: 0}
     - target: {fileID: 5497022020618746165, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: type
@@ -226,7 +225,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5497022020618746165, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: sizeDp
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 5497022020618746165, guid: 757e50f20237a4e418fc4a0abfdfaff0, type: 3}
       propertyPath: podSize

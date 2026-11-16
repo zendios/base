@@ -152,7 +152,7 @@ namespace Base.Setup
 
         /// <summary>x.y.z (or vx.y.z) tags of a repository, newest first.</summary>
         private static List<string> Tags(string repo) =>
-            ZenUpdateChecker.Git($"ls-remote --tags --refs {repo}").Split('\n')
+            UpdateChecker.Git($"ls-remote --tags --refs {repo}").Split('\n')
                 .Select(l => Regex.Match(l, @"refs/tags/v?(\d+\.\d+\.\d+)\s*$")).Where(m => m.Success)
                 .Select(m => m.Groups[1].Value).OrderByDescending(v => new Version(v)).ToList();
 
